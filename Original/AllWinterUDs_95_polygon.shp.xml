@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20200901</CreaDate><CreaTime>09404200</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="e:\program files\arcgis\desktop10.7\ArcToolbox\Toolboxes\Data Management Tools.tbx\JoinField" Date="20200901" Time="094042">JoinField AllWinterUDs_95_polygon FID AllWinterUDs_95_line FID level;ID;Bird;Season;Year</Process></lineage></DataProperties></Esri></metadata>
