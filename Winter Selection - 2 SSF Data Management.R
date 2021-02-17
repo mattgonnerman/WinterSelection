@@ -52,8 +52,6 @@ for(i in 1:nrow(birdlist)){
   }
 }
 
-# write.csv(full_all, "AllUsedPoints.csv", row.names = F) #All points 
-
 #####################################
 ### Combine SSF Used and HMM Data ###
 #####################################
@@ -118,6 +116,26 @@ AllPoints.ssf <- spTransform(AllPoints.ssf, CRS = "+proj=utm +zone=19 +datum=WGS
 # quantile(step.lengths, c(.5, .75, .9, .95), na.rm = T)
 # #363m
 # hist(step.lengths, breaks = 20, main="Histogram of step lengths", xlab="Step lengths")
+
+
+### Separate Availability for Roost-to-Roost analysis
+
+# roostonly.sp <- fulllocations.obs.raw %>%
+#   filter(State == 1) %>%
+#   mutate(Hour = hour(timestamp)) %>% #Just to check 
+#   nest(-ID) %>%
+#   mutate(track = map(data, ~ mk_track(., Long, Lat, timestamp, State, BirdID, crs= CRS("+proj=longlat +datum=WGS84"))))
+# roostonly.true.steps <- map(roostonly.sp$track, steps, keep_cols = 'end')
+# roostonly.random.steps <- map(roostonly.true.steps, random_steps, n=200, include_observed = T)
+# roostonly.steps <- bind_rows(roostonly.random.steps, .id="ID")
+# RoostOnlyPoints.ssf <- roostonly.steps %>%
+#   dplyr::select(-dt_)
+# coordinates(RoostOnlyPoints.ssf) <- ~x2_+y2_
+# proj4string(RoostOnlyPoints.ssf) <- CRS("+proj=longlat +datum=WGS84")
+# RoostOnlyPoints.ssf <- spTransform(RoostOnlyPoints.ssf, CRS = "+proj=utm +zone=19 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
+
+
+
 
 ###################################
 ### Load and Prepare Covariates ###

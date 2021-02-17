@@ -1,15 +1,24 @@
 ### Data Management ###
-## Takes a while, outputs saved so no need to run multiple times.
-## First need to have a behavioral state to associate with each point
-source(file = "Winter Selection - 1 HMM Forage Loaf Roost.R")
+## Prep Movement Data and Covariates for momentuHMM
+source(file = "Winter Selection - 1a HMM Data Prep.R")
+
+## Run Candidate Models
+source(file = "Winter Selection - 1b Run HMM Models.R")
+
+## HMM Model Selection and Graphing Options
+source(file = "Winter Selection - 1c HMM Results.R")
+
+# Run just the best HMM model (Once Identified)
+
 
 ## Next need all the appropriate covariates of interest
-source(file = "Winter Selection - 2 Data Management.R")
+source(file = "Winter Selection - 2 SSF Data Management.R")
 
-### Run Analysis ###
 ##Perform the INLA Analysis for SSF
 source(file = "Winter Selection - 3 INLA Analysis.R")
 
-### Results ###
+## Organize Results in a more readable format
+source(file = "Winter Selection - 4 Results Clean Up.R")
+
 ## Create Graphs
-source(file = "Winter Selection - 4 Graphs.R")
+source(file = "Winter Selection - 5 Graphs.R")
