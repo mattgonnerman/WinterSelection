@@ -1,3 +1,314 @@
+### HMM Options Common Between Models ###
+retryFits <- 5 # number attempt to re-fit based on random perturbation
+nbStates <- 3 # Number of states
+stateNames <- c("roost", "loafing", "foraging") # label states
+dist = list(step = "gamma", angle = "wrpcauchy") # distributions for observation processes
+prior <- function(par){sum(dnorm(par,0,10,log=TRUE))} #prevents working parameters from straying along boundary
+
+
+##############################################################
+### MODEL 0 - Nothing Specified
+# initial parameters
+Par0_m0.zm <- list(step=c(2, 50,120, #mean
+                          2, 50,100, #sd
+                          .99, .005, .005), #zero mass
+                   angle = c(.01, 0.2 ,0.3))
+
+# fit model
+turk_m0.zm <- fitHMM(data = turkeyData.zm,
+                     retryFits = retryFits,
+                     nbStates = nbStates,
+                     dist = dist,
+                     Par0 = Par0_m0.zm,
+                     estAngleMean = list(angle=FALSE),
+                     stateNames = stateNames,
+                     ncores = 5)
+
+
+# ##############################################################
+# ### MODEL 1 - Daily Cycle in Transition Probability
+# # initial parameters
+# Par0_m1.zm <- getPar0(model=turk_m0.zm,
+#                       formula=~cosinor(hour, period = 24))
+# 
+# # fit model
+# turk_m1.zm <- fitHMM(data = turkeyData.zm,
+#                      retryFits = retryFits,
+#                      nbStates = nbStates,
+#                      dist = dist,
+#                      Par0 = Par0_m1.zm$Par,
+#                      beta0 = Par0_m1.zm$beta,
+#                      estAngleMean = list(angle=FALSE),
+#                      stateNames = stateNames,
+#                      ncores = 5,
+#                      formula = ~cosinor(hour, period = 24)
+#                      )
+# 
+# 
+# ##############################################################
+# ### MODEL 2 - Daily Cycle and Weather Effects on Transition Probability
+# # initial parameters
+# Par0_m2.zm <- getPar0(model=turk_m1.zm,
+#                       formula= ~ WC.Z + SD.Z + cosinor(hour, period = 24),
+#                       covNames=c("SD.Z", "WC.Z"))
+# 
+# # fit model
+# turk_m2.zm <- fitHMM(data = turkeyData.zm,
+#                      retryFits = retryFits,
+#                      nbStates = nbStates,
+#                      dist = dist,
+#                      Par0 = Par0_m2.zm$Par,
+#                      beta0 = Par0_m2.zm$beta,
+#                      estAngleMean = list(angle=FALSE),
+#                      stateNames = stateNames,
+#                      ncores = 5,
+#                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24)
+#                      )
+# 
+# 
+# ##############################################################
+# ### MODEL 3 - Full Transition Probability Formula, ID and Daily Cycle affect Step Length
+# # formulas for parameters of state-dependent observation distributions
+# DM <- list(step = list(mean = ~ ID + cosinor(hour, period = 24),
+#                        sd = ~ ID + cosinor(hour, period = 24),
+#                        zeromass = ~ 1))
+# 
+# # initial parameters
+# Par0_m3.zm <- getPar0(model = turk_m2.zm,
+#                        formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID,
+#                        DM = DM,
+#                        covNames=c("SD.Z", "WC.Z"))
+# 
+# # fit model
+# turk_m3.zm <- fitHMM(data = turkeyData.zm,
+#                       retryFits = retryFits,
+#                       nbStates = nbStates,
+#                       dist = dist,
+#                       Par0 = Par0_m3.zm$Par,
+#                       beta0 = Par0_m3.zm$beta,
+#                       estAngleMean = list(angle=FALSE),
+#                       stateNames = stateNames,
+#                       DM = DM,
+#                       ncores = 5,
+#                       formula = ~WC.Z + SD.Z + cosinor(hour, period = 24) + ID
+# )
+
+# ##############################################################
+# ### MODEL 4 
+# # DOES NOT WORK WELL
+# DM <- list(step = list(mean = ~ SD.Z + WC.Z + ID + cosinor(hour, period = 24),
+#                        sd = ~ SD.Z + WC.Z + ID + cosinor(hour, period = 24),
+#                        zeromass = ~ 1))
+# 
+# # initial parameters
+# Par0_m4.zm <- getPar0(model = turk_m0.zm,
+#                       formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID,
+#                       DM = DM,
+#                       covNames=c("SD.Z", "WC.Z"))
+# 
+# # fit model
+# turk_m4.zm <- fitHMM(data = turkeyData.zm,
+#                      retryFits = retryFits,
+#                      nbStates = nbStates,
+#                      dist = dist,
+#                      Par0 = Par0_m4.zm$Par,
+#                      beta0 = Par0_m4.zm$beta,
+#                      estAngleMean = list(angle=FALSE),
+#                      stateNames = stateNames,
+#                      DM = DM,
+#                      ncores = 5,
+#                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
+# )
+
+
+##############################################################
+### MODEL 5
+stepDM<-matrix(c(
+  1,0,0,0,0,0,0,0,0,
+  1,1,0,0,0,0,0,0,0,
+  1,1,1,0,0,0,0,0,0,
+  0,0,0,1,0,0,0,0,0,
+  0,0,0,0,1,0,0,0,0,
+  0,0,0,0,0,1,0,0,0,
+  0,0,0,0,0,0,1,0,0,
+  0,0,0,0,0,0,0,1,0,
+  0,0,0,0,0,0,0,0,1),
+  nrow = 3*nbStates,byrow=TRUE,
+  dimnames=list(c(paste0("mean_",1:nbStates),paste0("sd_",1:nbStates), paste0("zero_",1:nbStates)),
+                c("mean_123:(Intercept)", "mean_2","mean_3",
+                  paste0("sd_",1:nbStates,":(Intercept)"),
+                  paste0("zero_",1:nbStates,":(Intercept)"))))
+#define the directions of the differences
+stepworkBounds <- matrix(c(-Inf, 0,0,-Inf, 0,0,rep(-Inf,3),rep(Inf,9)),nrow = 3*nbStates,
+                         dimnames=list(colnames(stepDM),c("lower","upper")))
+
+stepBounds <- matrix(c(0,5,
+                       0,Inf,
+                       0, Inf,
+                       0, Inf,
+                       0, Inf,
+                       0, Inf,
+                       .98,1,
+                       0,.02,
+                       0,.02), nrow = 3*nbStates, byrow = T,
+                     dimnames = list(rownames(stepDM), c("lower", "upper")))
+
+## constrain turning angle concentration parameters:
+# Concentration -> searching < dispersal
+angleDM<-matrix(c(1,0,0,
+                  1,1,0,
+                  1,1,1),nrow = nbStates,byrow=TRUE,
+                dimnames=list(paste0("concentration_",1:nbStates),
+                              c("concentration_1:(Intercept)","concentration_2","concentration_3")))
+
+#define direction of differences
+angleworkBounds <- matrix(c(-Inf,0,0,rep(Inf,3)),
+                          nrow = ncol(angleDM),
+                          dimnames=list(colnames(angleDM),c("lower","upper")))
+
+#Restrict angle concentration such that dispersal > .75 while dispersal>localized
+#Userbound contraint on angle
+angleBounds <- matrix(c(0,0.94,
+                        0,0.94,
+                        0,0.94),nrow = nbStates,
+                      byrow=TRUE, dimnames=list(rownames(angleDM),
+                                                c("lower","upper")))
+
+#Bundle individual parameter DM and workbounds
+DM<-list(step=stepDM,angle=angleDM)
+workBounds<-list(step=stepworkBounds,
+                 angle=angleworkBounds)
+userBounds <- list(step = stepBounds,
+                   angle = angleBounds)
+
+
+Par_m5.zm <- getPar0(model = turk_m0.zm,
+                     formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID,
+                     DM = DM,
+                     workBounds = workBounds,
+                     userBounds = userBounds)
+
+
+# fit model
+turk_m5.zm <- fitHMM(data = turkeyData.zm,
+                     # retryFits = retryFits,
+                     nbStates = nbStates,
+                     dist = dist,
+                     Par0 = Par_m5.zm$Par,
+                     beta0 = Par_m5.zm$beta,
+                     DM = DM,
+                     workBounds = workBounds,
+                     userBounds = userBounds,
+                     estAngleMean = list(angle=FALSE),
+                     prior = prior,
+                     stateNames = stateNames,
+                     ncores = 5,
+                     formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
+)
+
+# Par_m5b.zm <- getPar0(model = turk_m0.zm,
+#                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24),
+#                      DM = DM,
+#                      workBounds = workBounds,
+#                      userBounds = userBounds)
+# 
+# 
+# # fit model
+# turk_m5b.zm <- fitHMM(data = turkeyData.zm,
+#                      # retryFits = retryFits,
+#                      nbStates = nbStates,
+#                      dist = dist,
+#                      Par0 = Par_m5b.zm$Par,
+#                      beta0 = Par_m5b.zm$beta,
+#                      DM = DM,
+#                      workBounds = workBounds,
+#                      userBounds = userBounds,
+#                      estAngleMean = list(angle=FALSE),
+#                      prior = prior,
+#                      stateNames = stateNames,
+#                      ncores = 5,
+#                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24)
+)
+
+##############################################################
+### MODEL 
+# formulas for parameters of state-dependent observation distributions
+stepBounds <- matrix(c(0,5,
+                       0,50,
+                       50, Inf,
+                       0, Inf,
+                       0, Inf,
+                       0, Inf,
+                       .98,1,
+                       0,.02,
+                       0,.02), nrow = 3*nbStates, byrow = T,
+                     dimnames = list(rownames(stepDM), c("lower", "upper")))
+
+## constrain turning angle concentration parameters:
+# Concentration -> searching < dispersal
+angleDM<-matrix(c(1,0,0,
+                  1,1,0,
+                  1,1,1),nrow = nbStates,byrow=TRUE,
+                dimnames=list(paste0("concentration_",1:nbStates),
+                              c("concentration_1:(Intercept)","concentration_2","concentration_3")))
+
+#define direction of differences
+angleworkBounds <- matrix(c(-Inf,0,0,rep(Inf,3)),
+                          nrow = ncol(angleDM),
+                          dimnames=list(colnames(angleDM),c("lower","upper")))
+
+#Restrict angle concentration such that dispersal > .75 while dispersal>localized
+#Userbound contraint on angle
+angleBounds <- matrix(c(0,0.94,
+                        0,0.94,
+                        0,0.94),nrow = nbStates,
+                      byrow=TRUE, dimnames=list(rownames(angleDM),
+                                                c("lower","upper")))
+
+#Bundle individual parameter DM and workbounds
+DM<-list(step=list(mean = ~ cosinor(hour, period = 24),
+                    sd = ~ 1,
+                    zeromass = ~ 1),
+         angle=angleDM)
+workBounds<-list(angle=angleworkBounds)
+userBounds <- list(step = stepBounds,
+                   angle = angleBounds)
+# initial parameters
+Par0_m4.zm <- getPar0(model = turk_m2.zm,
+                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID,
+                      DM = DM,
+                      workBounds = workBounds,
+                      userBounds = userBounds,
+                      covNames=c("SD.Z", "WC.Z"))
+
+# fit model
+turk_m4.zm <- fitHMM(data = turkeyData.zm,
+                     retryFits = retryFits,
+                     nbStates = nbStates,
+                     dist = dist,
+                     Par0 = Par0_m4.zm$Par,
+                     beta0 = Par0_m4.zm$beta,
+                     estAngleMean = list(angle=FALSE),
+                     stateNames = stateNames,
+                     DM = DM,
+                     workBounds = workBounds,
+                     userBounds = userBounds,
+                     ncores = 5,
+                     formula = ~WC.Z + SD.Z + cosinor(hour, period = 24) + ID
+) 
+
+
+
+
+
+
+
+
+
+
+
+{
+
 ### CANDIDATE MODELS ###
 ### CANDIDATE MODELS ###
 ## A = Parameter Restrictions
@@ -58,165 +369,6 @@ angleBounds <- matrix(c(0,0.94,
                                                 c("lower","upper")))
 
 ##############################################################
-### MODEL A0 - No limit for loafing step length
-#Userbound constraint on step
-stepBounds <- matrix(c(0, 5,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       .98, 1,
-                       0, .02,
-                       0, .02), nrow = 3*nbStates, byrow = T,
-                     dimnames = list(rownames(stepDM), c("lower", "upper")))
-
-#Bundle individual parameter DM and workbounds
-DM<-list(step=stepDM,angle=angleDM)
-workBounds<-list(step=stepworkBounds,
-                 angle=angleworkBounds)
-userBounds <- list(step = stepBounds,
-                   angle = angleBounds)
-
-# initial parameters
-Par <- list(step=c(2, 45,200, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-Par0_mA0.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        zeroInflation = list(step = T,
-                                             angle = T),
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
-
-# fit model
-turk_mA0.zm <- fitHMM(data = turkeyData.zm,
-                      retryFits = retryFits,
-                      nbStates = nbStates,
-                      dist = dist,
-                      Par0 = Par0_mA0.zm,
-                      DM = DM,
-                      workBounds = workBounds,
-                      userBounds = userBounds,
-                      estAngleMean = list(angle=FALSE),
-                      prior = prior,
-                      stateNames = stateNames,
-                      ncores = 5
-)
-
-##############################################################
-### MODEL A1 - 50% quantile for loafing step length
-#Userbound constraint on step
-stepBounds <- matrix(c(0,5,
-                       0,51.04313,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       .98,1,
-                       0,.02,
-                       0,.02), nrow = 3*nbStates, byrow = T,
-                     dimnames = list(rownames(stepDM), c("lower", "upper")))
-
-#Bundle individual parameter DM and workbounds
-DM<-list(step=stepDM,angle=angleDM)
-workBounds<-list(step=stepworkBounds,
-                 angle=angleworkBounds)
-userBounds <- list(step = stepBounds,
-                   angle = angleBounds)
-
-# initial parameters
-Par <- list(step=c(2, 25,150, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-Par0_mA1.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        zeroInflation = list(step = T,
-                                             angle = T),
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
-
-# fit model
-turk_mA1.zm <- fitHMM(data = turkeyData.zm,
-                      retryFits = retryFits,
-                      nbStates = nbStates,
-                      dist = dist,
-                      Par0 = Par0_mA1.zm,
-                      DM = DM,
-                      workBounds = workBounds,
-                      userBounds = userBounds,
-                      estAngleMean = list(angle=FALSE),
-                      prior = prior,
-                      stateNames = stateNames,
-                      ncores = 5
-)
-
-##############################################################
-### MODEL A2 - 60% quantile for loafing step length
-#Userbound constraint on step
-stepBounds <- matrix(c(0,5,
-                       0,76.35757,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       .98,1,
-                       0,.02,
-                       0,.02), nrow = 3*nbStates, byrow = T,
-                     dimnames = list(rownames(stepDM), c("lower", "upper")))
-
-#Bundle individual parameter DM and workbounds
-DM<-list(step=stepDM,angle=angleDM)
-workBounds<-list(step=stepworkBounds,
-                 angle=angleworkBounds)
-userBounds <- list(step = stepBounds,
-                   angle = angleBounds)
-
-# initial parameters
-Par <- list(step=c(2, 40,150, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-Par0_mA2.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        zeroInflation = list(step = T,
-                                             angle = T),
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
-
-# fit model
-turk_mA2.zm <- fitHMM(data = turkeyData.zm,
-                      retryFits = retryFits,
-                      nbStates = nbStates,
-                      dist = dist,
-                      Par0 = Par0_mA2.zm,
-                      DM = DM,
-                      workBounds = workBounds,
-                      userBounds = userBounds,
-                      estAngleMean = list(angle=FALSE),
-                      prior = prior,
-                      stateNames = stateNames,
-                      ncores = 5
-)
-
-##############################################################
 ### MODEL A3 - 70% quantile for loafing step length
 #Userbound constraint on step
 stepBounds <- matrix(c(0,5,
@@ -268,113 +420,273 @@ turk_mA3.zm <- fitHMM(data = turkeyData.zm,
                       stateNames = stateNames,
                       ncores = 5
 )
-
-##############################################################
-### MODEL A4 - 80% quantile for loafing step length
-#Userbound constraint on step
-stepBounds <- matrix(c(0,5,
-                       0,160.15313,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       .98,1,
-                       0,.02,
-                       0,.02), nrow = 3*nbStates, byrow = T,
-                     dimnames = list(rownames(stepDM), c("lower", "upper")))
-
-#Bundle individual parameter DM and workbounds
-DM<-list(step=stepDM,angle=angleDM)
-workBounds<-list(step=stepworkBounds,
-                 angle=angleworkBounds)
-userBounds <- list(step = stepBounds,
-                   angle = angleBounds)
-
-# initial parameters
-Par <- list(step=c(2, 100,200, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-Par0_mA4.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        zeroInflation = list(step = T,
-                                             angle = T),
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
-
-# fit model
-turk_mA4.zm <- fitHMM(data = turkeyData.zm,
-                      retryFits = retryFits,
-                      nbStates = nbStates,
-                      dist = dist,
-                      Par0 = Par0_mA4.zm,
-                      DM = DM,
-                      workBounds = workBounds,
-                      userBounds = userBounds,
-                      estAngleMean = list(angle=FALSE),
-                      prior = prior,
-                      stateNames = stateNames,
-                      ncores = 5
-)
-
-##############################################################
-### MODEL A5 - 90% quantile for loafing step length
-#Userbound constraint on step
-stepBounds <- matrix(c(0,5,
-                       0,254.72528,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       0, Inf,
-                       .98,1,
-                       0,.02,
-                       0,.02), nrow = 3*nbStates, byrow = T,
-                     dimnames = list(rownames(stepDM), c("lower", "upper")))
-
-#Bundle individual parameter DM and workbounds
-DM<-list(step=stepDM,angle=angleDM)
-workBounds<-list(step=stepworkBounds,
-                 angle=angleworkBounds)
-userBounds <- list(step = stepBounds,
-                   angle = angleBounds)
-
-# initial parameters
-Par <- list(step=c(2, 150,300, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-Par0_mA5.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        zeroInflation = list(step = T,
-                                             angle = T),
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
-
-# fit model
-turk_mA5.zm <- fitHMM(data = turkeyData.zm,
-                      retryFits = retryFits,
-                      nbStates = nbStates,
-                      dist = dist,
-                      Par0 = Par0_mA5.zm,
-                      DM = DM,
-                      workBounds = workBounds,
-                      userBounds = userBounds,
-                      estAngleMean = list(angle=FALSE),
-                      prior = prior,
-                      stateNames = stateNames,
-                      ncores = 5
-)
-
+{
+  # ##############################################################
+  # ### MODEL A0 - No limit for loafing step length
+  # #Userbound constraint on step
+  # stepBounds <- matrix(c(0, 5,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        .98, 1,
+  #                        0, .02,
+  #                        0, .02), nrow = 3*nbStates, byrow = T,
+  #                      dimnames = list(rownames(stepDM), c("lower", "upper")))
+  # 
+  # #Bundle individual parameter DM and workbounds
+  # DM<-list(step=stepDM,angle=angleDM)
+  # workBounds<-list(step=stepworkBounds,
+  #                  angle=angleworkBounds)
+  # userBounds <- list(step = stepBounds,
+  #                    angle = angleBounds)
+  # 
+  # # initial parameters
+  # Par <- list(step=c(2, 45,200, #mean
+  #                    2, 10,25, #sd
+  #                    .99, .005, .005), #zero mass
+  #             angle = c(.01, 0.2 ,0.3))
+  # 
+  # Par0_mA0.zm <- getParDM(data = turkeyData.zm,
+  #                         nbStates = nbStates,
+  #                         zeroInflation = list(step = T,
+  #                                              angle = T),
+  #                         dist = dist,
+  #                         Par = Par,
+  #                         DM = DM,
+  #                         workBounds = workBounds,
+  #                         userBounds = userBounds,
+  #                         estAngleMean = list(angle = FALSE))
+  # 
+  # # fit model
+  # turk_mA0.zm <- fitHMM(data = turkeyData.zm,
+  #                       retryFits = retryFits,
+  #                       nbStates = nbStates,
+  #                       dist = dist,
+  #                       Par0 = Par0_mA0.zm,
+  #                       DM = DM,
+  #                       workBounds = workBounds,
+  #                       userBounds = userBounds,
+  #                       estAngleMean = list(angle=FALSE),
+  #                       prior = prior,
+  #                       stateNames = stateNames,
+  #                       ncores = 5
+  # )
+  # 
+  # ##############################################################
+  # ### MODEL A1 - 50% quantile for loafing step length
+  # #Userbound constraint on step
+  # stepBounds <- matrix(c(0,5,
+  #                        0,51.04313,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        .98,1,
+  #                        0,.02,
+  #                        0,.02), nrow = 3*nbStates, byrow = T,
+  #                      dimnames = list(rownames(stepDM), c("lower", "upper")))
+  # 
+  # #Bundle individual parameter DM and workbounds
+  # DM<-list(step=stepDM,angle=angleDM)
+  # workBounds<-list(step=stepworkBounds,
+  #                  angle=angleworkBounds)
+  # userBounds <- list(step = stepBounds,
+  #                    angle = angleBounds)
+  # 
+  # # initial parameters
+  # Par <- list(step=c(2, 25,150, #mean
+  #                    2, 10,25, #sd
+  #                    .99, .005, .005), #zero mass
+  #             angle = c(.01, 0.2 ,0.3))
+  # 
+  # Par0_mA1.zm <- getParDM(data = turkeyData.zm,
+  #                         nbStates = nbStates,
+  #                         zeroInflation = list(step = T,
+  #                                              angle = T),
+  #                         dist = dist,
+  #                         Par = Par,
+  #                         DM = DM,
+  #                         workBounds = workBounds,
+  #                         userBounds = userBounds,
+  #                         estAngleMean = list(angle = FALSE))
+  # 
+  # # fit model
+  # turk_mA1.zm <- fitHMM(data = turkeyData.zm,
+  #                       retryFits = retryFits,
+  #                       nbStates = nbStates,
+  #                       dist = dist,
+  #                       Par0 = Par0_mA1.zm,
+  #                       DM = DM,
+  #                       workBounds = workBounds,
+  #                       userBounds = userBounds,
+  #                       estAngleMean = list(angle=FALSE),
+  #                       prior = prior,
+  #                       stateNames = stateNames,
+  #                       ncores = 5
+  # )
+  # 
+  # ##############################################################
+  # ### MODEL A2 - 60% quantile for loafing step length
+  # #Userbound constraint on step
+  # stepBounds <- matrix(c(0,5,
+  #                        0,76.35757,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        0, Inf,
+  #                        .98,1,
+  #                        0,.02,
+  #                        0,.02), nrow = 3*nbStates, byrow = T,
+  #                      dimnames = list(rownames(stepDM), c("lower", "upper")))
+  # 
+  # #Bundle individual parameter DM and workbounds
+  # DM<-list(step=stepDM,angle=angleDM)
+  # workBounds<-list(step=stepworkBounds,
+  #                  angle=angleworkBounds)
+  # userBounds <- list(step = stepBounds,
+  #                    angle = angleBounds)
+  # 
+  # # initial parameters
+  # Par <- list(step=c(2, 40,150, #mean
+  #                    2, 10,25, #sd
+  #                    .99, .005, .005), #zero mass
+  #             angle = c(.01, 0.2 ,0.3))
+  # 
+  # Par0_mA2.zm <- getParDM(data = turkeyData.zm,
+  #                         nbStates = nbStates,
+  #                         zeroInflation = list(step = T,
+  #                                              angle = T),
+  #                         dist = dist,
+  #                         Par = Par,
+  #                         DM = DM,
+  #                         workBounds = workBounds,
+  #                         userBounds = userBounds,
+  #                         estAngleMean = list(angle = FALSE))
+  # 
+  # # fit model
+  # turk_mA2.zm <- fitHMM(data = turkeyData.zm,
+  #                       retryFits = retryFits,
+  #                       nbStates = nbStates,
+  #                       dist = dist,
+  #                       Par0 = Par0_mA2.zm,
+  #                       DM = DM,
+  #                       workBounds = workBounds,
+  #                       userBounds = userBounds,
+  #                       estAngleMean = list(angle=FALSE),
+  #                       prior = prior,
+  #                       stateNames = stateNames,
+  #                       ncores = 5
+  # )
+} #A0-2
+{
+# ##############################################################
+# ### MODEL A4 - 80% quantile for loafing step length
+# #Userbound constraint on step
+# stepBounds <- matrix(c(0,5,
+#                        0,160.15313,
+#                        0, Inf,
+#                        0, Inf,
+#                        0, Inf,
+#                        0, Inf,
+#                        .98,1,
+#                        0,.02,
+#                        0,.02), nrow = 3*nbStates, byrow = T,
+#                      dimnames = list(rownames(stepDM), c("lower", "upper")))
+# 
+# #Bundle individual parameter DM and workbounds
+# DM<-list(step=stepDM,angle=angleDM)
+# workBounds<-list(step=stepworkBounds,
+#                  angle=angleworkBounds)
+# userBounds <- list(step = stepBounds,
+#                    angle = angleBounds)
+# 
+# # initial parameters
+# Par <- list(step=c(2, 100,200, #mean
+#                    2, 10,25, #sd
+#                    .99, .005, .005), #zero mass
+#             angle = c(.01, 0.2 ,0.3))
+# 
+# Par0_mA4.zm <- getParDM(data = turkeyData.zm,
+#                         nbStates = nbStates,
+#                         zeroInflation = list(step = T,
+#                                              angle = T),
+#                         dist = dist,
+#                         Par = Par,
+#                         DM = DM,
+#                         workBounds = workBounds,
+#                         userBounds = userBounds,
+#                         estAngleMean = list(angle = FALSE))
+# 
+# # fit model
+# turk_mA4.zm <- fitHMM(data = turkeyData.zm,
+#                       retryFits = retryFits,
+#                       nbStates = nbStates,
+#                       dist = dist,
+#                       Par0 = Par0_mA4.zm,
+#                       DM = DM,
+#                       workBounds = workBounds,
+#                       userBounds = userBounds,
+#                       estAngleMean = list(angle=FALSE),
+#                       prior = prior,
+#                       stateNames = stateNames,
+#                       ncores = 5
+# )
+# 
+# ##############################################################
+# ### MODEL A5 - 90% quantile for loafing step length
+# #Userbound constraint on step
+# stepBounds <- matrix(c(0,5,
+#                        0,254.72528,
+#                        0, Inf,
+#                        0, Inf,
+#                        0, Inf,
+#                        0, Inf,
+#                        .98,1,
+#                        0,.02,
+#                        0,.02), nrow = 3*nbStates, byrow = T,
+#                      dimnames = list(rownames(stepDM), c("lower", "upper")))
+# 
+# #Bundle individual parameter DM and workbounds
+# DM<-list(step=stepDM,angle=angleDM)
+# workBounds<-list(step=stepworkBounds,
+#                  angle=angleworkBounds)
+# userBounds <- list(step = stepBounds,
+#                    angle = angleBounds)
+# 
+# # initial parameters
+# Par <- list(step=c(2, 150,300, #mean
+#                    2, 10,25, #sd
+#                    .99, .005, .005), #zero mass
+#             angle = c(.01, 0.2 ,0.3))
+# 
+# Par0_mA5.zm <- getParDM(data = turkeyData.zm,
+#                         nbStates = nbStates,
+#                         zeroInflation = list(step = T,
+#                                              angle = T),
+#                         dist = dist,
+#                         Par = Par,
+#                         DM = DM,
+#                         workBounds = workBounds,
+#                         userBounds = userBounds,
+#                         estAngleMean = list(angle = FALSE))
+# 
+# # fit model
+# turk_mA5.zm <- fitHMM(data = turkeyData.zm,
+#                       retryFits = retryFits,
+#                       nbStates = nbStates,
+#                       dist = dist,
+#                       Par0 = Par0_mA5.zm,
+#                       DM = DM,
+#                       workBounds = workBounds,
+#                       userBounds = userBounds,
+#                       estAngleMean = list(angle=FALSE),
+#                       prior = prior,
+#                       stateNames = stateNames,
+#                       ncores = 5
+# )
+} #A4-5
 
 ### Top Model = MODEL A3 ###
 
@@ -384,12 +696,25 @@ turk_mA5.zm <- fitHMM(data = turkeyData.zm,
 ########################################################################
 ################################## B ###################################
 ########################################################################
-### Used across all models
-# initial parameters
+stepDM<-matrix(c(
+  "WC.Z + SD.Z",0,0,0,0,0,0,0,0,
+  "WC.Z + SD.Z",1,0,0,0,0,0,0,0,
+  "WC.Z + SD.Z",1,1,0,0,0,0,0,0,
+  0,0,0,"WC.Z + SD.Z",0,0,0,0,0,
+  0,0,0,"WC.Z + SD.Z",1,0,0,0,0,
+  0,0,0,"WC.Z + SD.Z",1,1,0,0,0,
+  0,0,0,0,0,0,1,0,0,
+  0,0,0,0,0,0,0,1,0,
+  0,0,0,0,0,0,0,0,1),
+  nrow = 3*nbStates,byrow=TRUE,
+  dimnames=list(c(paste0("mean_",1:nbStates),paste0("sd_",1:nbStates), paste0("zero_",1:nbStates)),
+                c("mean_123:(Intercept)", "mean_2","mean_3",
+                  paste0("sd_",1:nbStates,":(Intercept)"),
+                  paste0("zero_",1:nbStates,":(Intercept)"))))
 #define the directions of the differences
-stepworkBounds <- matrix(c(-Inf, 0,0,rep(-Inf,6),rep(Inf,9)),nrow = 3*nbStates,
+stepworkBounds <- matrix(c(-Inf, 0,0,-Inf, 0,0,rep(-Inf,3),rep(Inf,9)),nrow = 3*nbStates,
                          dimnames=list(colnames(stepDM),c("lower","upper")))
-#Userbound constraint on step
+
 stepBounds <- matrix(c(0,5,
                        0,109.69861,
                        0, Inf,
@@ -409,6 +734,11 @@ angleDM<-matrix(c(1,0,0,
                 dimnames=list(paste0("concentration_",1:nbStates),
                               c("concentration_1:(Intercept)","concentration_2","concentration_3")))
 
+#define direction of differences
+angleworkBounds <- matrix(c(-Inf,0,0,rep(Inf,3)),
+                          nrow = ncol(angleDM),
+                          dimnames=list(colnames(angleDM),c("lower","upper")))
+
 #Restrict angle concentration such that dispersal > .75 while dispersal>localized
 #Userbound contraint on angle
 angleBounds <- matrix(c(0,0.94,
@@ -416,34 +746,6 @@ angleBounds <- matrix(c(0,0.94,
                         0,0.94),nrow = nbStates,
                       byrow=TRUE, dimnames=list(rownames(angleDM),
                                                 c("lower","upper")))
-#define direction of differences
-angleworkBounds <- matrix(c(-Inf,0,0,rep(Inf,3)),
-                          nrow = ncol(angleDM),
-                          dimnames=list(colnames(angleDM),c("lower","upper")))
-# initial parameters
-Par <- list(step=c(2, 75,150, #mean
-                   2, 10,25, #sd
-                   .99, .005, .005), #zero mass
-            angle = c(.01, 0.2 ,0.3))
-
-##############################################################
-### MODEL B1 - DM and Workbounds added; No covariates
-## constrain step length parameters:
-stepDM<-matrix(c(
-  "ID",0,0,0,0,0,0,0,0,
-  "ID",1,0,0,0,0,0,0,0,
-  "ID",1,1,0,0,0,0,0,0,
-  0,0,0,"ID",0,0,0,0,0,
-  0,0,0,"ID",1,0,0,0,0,
-  0,0,0,"ID",1,1,0,0,0,
-  0,0,0,0,0,0,1,0,0,
-  0,0,0,0,0,0,0,1,0,
-  0,0,0,0,0,0,0,0,1),
-  nrow = 3*nbStates,byrow=TRUE,
-  dimnames=list(c(paste0("mean_",1:nbStates),paste0("sd_",1:nbStates), paste0("zero_",1:nbStates)),
-                c("mean_123:(Intercept)", "mean_2","mean_3",
-                  paste0("sd_",1:nbStates,":(Intercept)"),
-                  paste0("zero_",1:nbStates,":(Intercept)"))))
 
 #Bundle individual parameter DM and workbounds
 DM<-list(step=stepDM,angle=angleDM)
@@ -453,44 +755,32 @@ userBounds <- list(step = stepBounds,
                    angle = angleBounds)
 
 
+Par_mA3.zm <- getPar0(model = turk_mA3.zm,
+                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID, 
+                      DM = DM,
+                      workBounds = workBounds,
+                      userBounds = userBounds)
 
-Par0_mB0.zm <- getParDM(data = turkeyData.zm,
-                        nbStates = nbStates,
-                        dist = dist,
-                        Par = Par,
-                        DM = DM,
-                        workBounds = workBounds,
-                        userBounds = userBounds,
-                        estAngleMean = list(angle = FALSE))
 
 # fit model
 turk_mB0.zm <- fitHMM(data = turkeyData.zm,
                       retryFits = retryFits,
                       nbStates = nbStates,
                       dist = dist,
-                      Par0 = Par0_mB0.zm,
+                      Par0 = Par0_mB0.zm$Par,
+                      beta0 = Par0_mB0.zm$beta,
                       DM = DM,
                       workBounds = workBounds,
                       userBounds = userBounds,
                       estAngleMean = list(angle=FALSE),
                       prior = prior,
                       stateNames = stateNames,
-                      ncores = 5
+                      ncores = 5,
+                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
 )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+}
 {
 
 ### ##Test if including parameter bounds improves model
@@ -1573,31 +1863,32 @@ turk_mB0.zm <- fitHMM(data = turkeyData.zm,
 # 
 # 
 # ##############################################################
-# ### MODEL 12 - No Parameter Bounds, Hour of day + Snow Depth + Wind Chill effect on transition probability and step length
-# # formulas for parameters of state-dependent observation distributions
-# DM <- list(step = list(mean = ~ WC.Z + SD.Z + cosinor(hour, period = 24),
-#                        sd = ~ WC.Z + SD.Z + cosinor(hour, period = 24),
-#                        zeromass = ~ 1))
-# 
-# # initial parameters
-# Par0_m12.zm <- getPar0(model = turk_m11.zm,
-#                        formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24),
-#                        DM = DM,
-#                        covNames=c("SD.Z"))
-# 
-# # fit model
-# turk_m12.zm <- fitHMM(data = turkeyData.zm, 
-#                       retryFits = retryFits,
-#                       nbStates = nbStates, 
-#                       dist = dist, 
-#                       Par0 = Par0_m12.zm$Par,
-#                       beta0 = Par0_m12.zm$beta,
-#                       estAngleMean = list(angle=FALSE),
-#                       stateNames = stateNames,
-#                       DM = DM,
-#                       ncores = 5,
-#                       formula = ~WC.Z + SD.Z + cosinor(hour, period = 24)
-#   )
+### MODEL 12 - No Parameter Bounds, Hour of day + Snow Depth + Wind Chill effect on transition probability and step length
+# formulas for parameters of state-dependent observation distributions
+DM <- list(step = list(mean = ~ ID + cosinor(hour, period = 24),
+                       sd = ~ ID + cosinor(hour, period = 24),
+                       zeromass = ~ 1))
+
+# initial parameters
+Par0_m12.zm <- getPar0(model = turk_m11.zm,
+                       formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24),
+                       DM = DM,
+                       covNames=c("SD.Z", "WC.Z"))
+
+# fit model
+turk_m12.zm <- fitHMM(data = turkeyData.zm,
+                      retryFits = retryFits,
+                      nbStates = nbStates,
+                      dist = dist,
+                      Par0 = Par0_m12.zm$Par,
+                      beta0 = Par0_m12.zm$beta,
+                      estAngleMean = list(angle=FALSE),
+                      stateNames = stateNames,
+                      DM = DM,
+                      ncores = 5,
+                      formula = ~WC.Z + SD.Z + cosinor(hour, period = 24) + ID
+                      )
+
 # ### Includes Weather and Time Covariates
 # ##############################################################
 # ### MODEL 13 - DM and Workbounds added; No covariates
@@ -2484,4 +2775,4 @@ turk_mB0.zm <- fitHMM(data = turkeyData.zm,
 #                       formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
 # )
   
-}
+} #Previous Model Attempts

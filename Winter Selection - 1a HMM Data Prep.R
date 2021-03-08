@@ -111,13 +111,13 @@ weather.raw <- read.csv("WeatherVariables.csv") %>%
   mutate(Date = as.Date(DATE, format = "%m/%d/%Y"))%>%
   mutate(AWND = ifelse(is.na(AWND), 0, AWND)) %>% #If AWND is NA, that means no wind
   dplyr::select(Date, TMIN, AWND, WDF2, SD = SNWD)%>%
-  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) %>% #calculate windchill
-  mutate(WC.Z =  as.numeric(scale(WC, center = T, scale = T))) %>%
-  mutate(SD.Z =  as.numeric(scale(SD, center = T, scale = T)))
+  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) #calculate windchill
 turkeyData.zm1$Date <- as.Date(turkeyData.zm1$Timestamp)
 #Add windchill and snow depth by date
-turkeyData.weather <- merge(turkeyData.zm1, weather.raw, by = "Date", all.x = T)%>%
-  dplyr::select(Timestamp, ID, SD.Z, WC.Z)
+turkeyData.weather <- merge(turkeyData.zm1, weather.raw, by = "Date", all.x = T) %>%
+  mutate(WC.Z =  as.numeric(scale(WC, center = T, scale = T))) %>%
+  mutate(SD.Z =  as.numeric(scale(SD, center = T, scale = T))) %>%
+  dplyr::select(Timestamp, ID, SD.Z, WC.Z) 
 Turkey.crawl.zm <- crawlMerge(Turkey.crawl.zm1, turkeyData.weather, Time.name = "Timestamp")
 
 # create momentuHMMData object from crwData object

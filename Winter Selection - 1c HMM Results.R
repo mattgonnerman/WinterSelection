@@ -1,36 +1,38 @@
-### Model Selection
-# Finding best parameter restrictions
-hmm.aic.A <- AIC(turk_mA0.zm,
-                 turk_mA1.zm,
-                 turk_mA2.zm,
-                 turk_mA3.zm,
-                 turk_mA4.zm,
-                 turk_mA5.zm
-               )
-hmm.aic.A
-write.csv(hmm.aic.A, "HMM_AIC_A.csv", row.names = F)
-hmm.top.model <- get(hmm.aic.A[1,1])
+# ### Model Selection
+# # Finding best parameter restrictions
+# hmm.aic.A <- AIC(turk_mA0.zm,
+#                  turk_mA1.zm,
+#                  turk_mA2.zm,
+#                  turk_mA3.zm,
+#                  turk_mA4.zm,
+#                  turk_mA5.zm
+#                )
+# hmm.aic.A
+# write.csv(hmm.aic.A, "HMM_AIC_A.csv", row.names = F)
+# hmm.top.model <- get(hmm.aic.A[1,1])
+# 
+# #Best Model With Covariates
+# hmm.aic.B <- AIC(get(hmm.aic.A[1,1]),
+#                  
+# )
+# hmm.aic.B
+# write.csv(hmm.aic.B, "HMM_AIC_B.csv", row.names = F)
+# 
+# 
+# 
+# hmm.aicC[1,1]
+# hmm.top.model <- get(hmm.aicC[1,1])
 
-#Best Model With Covariates
-hmm.aic.B <- AIC(get(hmm.aic.A[1,1]),
-                 
-)
-hmm.aic.B
-write.csv(hmm.aic.B, "HMM_AIC_B.csv", row.names = F)
-
-
-
-hmm.aicC[1,1]
-hmm.top.model <- get(hmm.aicC[1,1])
+hmm.top.model <- turk_m5.zm
 
 #Associate behavioral states from best model with original data 
 turk_top_states <- viterbi(hmm.top.model)
 turkey_states <- turkeyData.zm
 turkey_states$State <- turk_top_states
 #Diagnostic Plots
-plotPR(hmm.top.model)
-hist(turk_top_states)
-plot(hmm.top.model,legend.pos="right")
+# plotPR(hmm.top.model)
+# hist(turk_top_states)
+# plot(hmm.top.model,legend.pos="right")
 
 #Write output to csv to bring in, simplify, and combine with SSF data
 write.csv(turkey_states, "HMMBehavioralStates_output.csv")
