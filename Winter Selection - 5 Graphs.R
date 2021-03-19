@@ -140,19 +140,22 @@ for(i in 1:length(int.Snow.Roost$LC_Cov)){
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+
+jpeg('Roost_Snow.jpg', width = 1300, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
+dev.off()
 
 ##Wind Chill
 wind.list <- list()
@@ -171,20 +174,23 @@ for(i in 1:length(int.Wind.Roost$LC_Cov)){
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+
+
+jpeg('Roost_Wind.jpg', width = 1300, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
-
+dev.off()
 
 ###Loafing 
 ##Snow Depth 
@@ -204,19 +210,22 @@ for(i in 1:length(int.Snow.Loaf$LC_Cov)){
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+
+jpeg('Loafing_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
+dev.off()
 
 ##Wind Chill
 wind.list <- list()
@@ -235,19 +244,22 @@ for(i in 1:length(int.Wind.Loaf$LC_Cov)){
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+
+jpeg('Loafing_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
+dev.off()
 
 ###Foraging
 ##Snow Depth 
@@ -267,19 +279,23 @@ for(i in 1:length(int.Snow.Forage$LC_Cov)){
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+
+
+jpeg('Foraging_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
+dev.off()
 
 ##Wind Chill
 wind.list <- list()
@@ -298,19 +314,23 @@ for(i in 1:length(int.Wind.Forage$LC_Cov)){
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
     geom_line(aes(linetype = W.Condition), size = 1.4) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic() +
+    theme_classic(base_size = 25) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
 legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+
+
+jpeg('Foraging_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",
           nrow = 3,
           align = "hv",
           axis = "lb")
+dev.off()
 
 #### Momentuhmm Transition Probability graphs
 

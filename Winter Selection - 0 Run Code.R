@@ -8,6 +8,8 @@ source(file = "Winter Selection - 1b Run HMM Models.R")
 ## HMM Model Selection and Graphing Options
 source(file = "Winter Selection - 1c HMM Results.R")
 
+source(file = "Winter Selection - 1d HMM Graphs.R")
+
 # Run just the best HMM model (Once Identified)
 
 

@@ -25,6 +25,11 @@
 
 hmm.top.model <- turk_m5.zm
 
+write.csv(turk_m5.zm$rawCovs, 'Results/HMM - RawCovs.csv')
+write.csv(turk_m5.zm$mle$beta, 'Results/HMM - MLE of betas.csv')
+write.csv(turk_m5.zm$mle$angle, 'Results/HMM - MLE of angle.csv')
+write.csv(turk_m5.zm$mle$step, 'Results/HMM - MLE of step.csv')
+
 #Associate behavioral states from best model with original data 
 turk_top_states <- viterbi(hmm.top.model)
 turkey_states <- turkeyData.zm
@@ -35,7 +40,7 @@ turkey_states$State <- turk_top_states
 # plot(hmm.top.model,legend.pos="right")
 
 #Write output to csv to bring in, simplify, and combine with SSF data
-write.csv(turkey_states, "HMMBehavioralStates_output.csv")
+write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
 
 
 #Checkout Leaflet

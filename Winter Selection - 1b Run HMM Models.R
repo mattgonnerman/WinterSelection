@@ -191,7 +191,7 @@ Par_m5.zm <- getPar0(model = turk_m0.zm,
 
 # fit model
 turk_m5.zm <- fitHMM(data = turkeyData.zm,
-                     # retryFits = retryFits,
+                     retryFits = retryFits,
                      nbStates = nbStates,
                      dist = dist,
                      Par0 = Par_m5.zm$Par,
@@ -228,7 +228,7 @@ turk_m5.zm <- fitHMM(data = turkeyData.zm,
 #                      stateNames = stateNames,
 #                      ncores = 5,
 #                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24)
-)
+# )
 
 ##############################################################
 ### MODEL 
