@@ -3,7 +3,7 @@ require(ggplot2)
 require(forcats)
 
 ### Comparison of Magnitude of Interactions
-interactions.raw <- read.csv("InteractionResults.csv") %>%
+interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
   mutate(Beh_State = as.factor(Analysis)) %>%
   mutate(LC_Cov = as.factor(HabitatCov)) %>%
   rename(Interaction = mean, SD = sd)
@@ -35,7 +35,7 @@ ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
-ggsave("SnowDepth_InteractionComp.jpeg", width = 8, height = 7, units = "in")
+ggsave("Results/SnowDepth_InteractionComp.jpeg", width = 8, height = 7, units = "in")
 
 
 #Graph showing interaction terms for Previous days wind chill
@@ -59,7 +59,7 @@ ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
-ggsave("WindChill_InteractionComp.jpeg", width = 8, height = 7, units = "in")
+ggsave("Results/WindChill_InteractionComp.jpeg", width = 8, height = 7, units = "in")
 
 
 #make big points
@@ -70,7 +70,7 @@ ggsave("WindChill_InteractionComp.jpeg", width = 8, height = 7, units = "in")
 ### Plot Matrix showing selection at Poor, Average, and Good Weather
 require(cowplot)
 
-interactions.raw <- read.csv("CowplotData.csv") %>%
+interactions.raw <- read.csv("Results/CowplotData.csv") %>%
   # mutate(Beh_State = factor(Beh_State, levels = c("Roost", "Stationary", "Mobile"))) %>%
   # mutate(LC_Cov = factor(LC_Cov,
   #                        levels = c("Distance to Edge", "Wind Exposure", "Proportion Ag",
@@ -146,9 +146,9 @@ for(i in 1:length(int.Snow.Roost$LC_Cov)){
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
-jpeg('Roost_Snow.jpg', width = 1300, height = 1500)
+jpeg('Results/Roost_Snow.jpg', width = 1300, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
@@ -180,10 +180,10 @@ for(i in 1:length(int.Wind.Roost$LC_Cov)){
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
 
-jpeg('Roost_Wind.jpg', width = 1300, height = 1500)
+jpeg('Results/Roost_Wind.jpg', width = 1300, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",
@@ -216,9 +216,9 @@ for(i in 1:length(int.Snow.Loaf$LC_Cov)){
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
-jpeg('Loafing_Snow.jpg', width = 1800, height = 1500)
+jpeg('Results/Loafing_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
@@ -250,9 +250,9 @@ for(i in 1:length(int.Wind.Loaf$LC_Cov)){
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
-jpeg('Loafing_Wind.jpg', width = 1800, height = 1500)
+jpeg('Results/Loafing_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",
@@ -285,10 +285,10 @@ for(i in 1:length(int.Snow.Forage$LC_Cov)){
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(snow.plot + theme(legend.position = "bottom"))
+legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
 
-jpeg('Foraging_Snow.jpg', width = 1800, height = 1500)
+jpeg('Results/Foraging_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
           labels = "auto",
@@ -320,10 +320,10 @@ for(i in 1:length(int.Wind.Forage$LC_Cov)){
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
 }
 
-legend <- get_legend(wind.plot + theme(legend.position = "bottom"))
+legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
 
-jpeg('Foraging_Wind.jpg', width = 1800, height = 1500)
+jpeg('Results/Foraging_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
           labels = "auto",

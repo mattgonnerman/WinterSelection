@@ -4,6 +4,11 @@
 #### 1)Available based on roost to roost, 2) Available based on point previous to roost
 #### UPDATE: Could not get option 1 to work, and since Erik wanted 2 anyways, didnt push through that issue yet
 
+# #Install Packages
+# install.packages("move", "ggmap", "mapproj", "sf", "devtools")
+# library(devtools)
+# install_github("bacollier/moveud")
+
 ### Load Packages
 require(move)
 require(ggmap)
@@ -55,7 +60,7 @@ for(i in 1:nrow(birdlist)){
 #####################################
 ### Combine SSF Used and HMM Data ###
 #####################################
-hmm_data.raw <- read.csv("HMMBehavioralStates_output.csv") %>%
+hmm_data.raw <- read.csv("Results/HMMBehavioralStates_output.csv") %>%
   select(ID, Timestamp, State) %>%
   mutate(BirdID =  sub('^[^X]*X(\\d+).*', '\\1', ID)) %>%
   rename(timestamp = Timestamp) %>%

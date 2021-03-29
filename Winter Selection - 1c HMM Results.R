@@ -23,7 +23,7 @@
 # hmm.aicC[1,1]
 # hmm.top.model <- get(hmm.aicC[1,1])
 
-hmm.top.model <- turk_m5.zm
+hmm.top.model <- turk_m2.zm
 
 write.csv(turk_m5.zm$rawCovs, 'Results/HMM - RawCovs.csv')
 write.csv(turk_m5.zm$mle$beta, 'Results/HMM - MLE of betas.csv')

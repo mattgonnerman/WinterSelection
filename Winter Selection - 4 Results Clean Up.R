@@ -52,8 +52,8 @@ for(i in 1:length(roostlist)){
   }
 }
 
-write.csv(roostresults, "roostresults.full.csv", row.names = F)
-write.csv(roostmodelselection %>% arrange(Weath_Cov, DIC), "roostmodelselection.csv", row.names = F)
+write.csv(roostresults, "Results/roostresults.full.csv", row.names = F)
+write.csv(roostmodelselection %>% arrange(Weath_Cov, DIC), "Results/roostmodelselection.csv", row.names = F)
 roostinteractions <- roostresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
   mutate(Analysis = "Roosting")
@@ -114,8 +114,8 @@ for(i in 1:length(loaflist)){
   }
 }
 
-write.csv(loafresults, "loafresults.full.csv", row.names = F)
-write.csv(loafmodelselection %>% arrange(Weath_Cov, DIC), "loafmodelselection.csv", row.names = F)
+write.csv(loafresults, "Results/loafresults.full.csv", row.names = F)
+write.csv(loafmodelselection %>% arrange(Weath_Cov, DIC), "Results/loafmodelselection.csv", row.names = F)
 loafinteractions <- loafresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
   mutate(Analysis = "Loafing")
@@ -177,13 +177,13 @@ for(i in 1:length(foragelist)){
   }
 }
 
-write.csv(forageresults, "forageresults.full.csv", row.names = F)
+write.csv(forageresults, "Results/forageresults.full.csv", row.names = F)
 forageinteractions <- forageresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
   mutate(Analysis = "Foraging")
 
 
 fullinteractions <- rbind(fullinteractions, forageinteractions)
-write.csv(fullinteractions, 'InteractionResults.csv', row.names = F)
-write.csv(foragemodelselection %>% arrange(Weath_Cov, DIC), "foragemodelselection.csv", row.names = F)
-write.csv(info.cow, 'CowplotData.csv', row.names = F)
+write.csv(fullinteractions, 'Results/InteractionResults.csv', row.names = F)
+write.csv(foragemodelselection %>% arrange(Weath_Cov, DIC), "Results/foragemodelselection.csv", row.names = F)
+write.csv(info.cow, 'Results/CowplotData.csv', row.names = F)

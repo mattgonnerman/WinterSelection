@@ -37,7 +37,7 @@ prec.beta <- 1e-4
 
 ################################################################################### 
 ### 1st Scale - Roost Points
-sink("RoostResults_HMM.csv")
+sink("Results/RoostResults_HMM.csv")
 cat("Roost ~ Basal Area + Wind Chill + BA*WC + BA|IND")
 cat('\n')
 formula.random <- Use ~  -1 + BA.Z + WC_prev + BA.Z*WC_prev + #Fixed effects
@@ -422,7 +422,7 @@ sink()
 
 ################################################################################### 
 ### 2nd Scale - Stationary
-sink('StationaryResults_HMM.csv')
+sink('Results/StationaryResults_HMM.csv')
 cat('Stationary ~ Basal Area + Wind Chill + BA*WC + BA|IND')
 cat('\n')
 formula.random <- Use ~  -1 + BA.Z + WC_prev + BA.Z*WC_prev + #Fixed effects
@@ -1113,7 +1113,7 @@ sink()
 
 ################################################################################### 
 ### 3rd Scale - Day Use, All Points
-sink('MobileResults_HMM.csv')
+sink('Results/MobileResults_HMM.csv')
 
 
 cat('Mobile ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')

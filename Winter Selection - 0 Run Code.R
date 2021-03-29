@@ -8,7 +8,7 @@ source(file = "Winter Selection - 1b Run HMM Models.R")
 ## HMM Model Selection and Graphing Options
 source(file = "Winter Selection - 1c HMM Results.R")
 
-source(file = "Winter Selection - 1d HMM Graphs.R")
+# source(file = "Winter Selection - 1d HMM Graphs.R")
 
 # Run just the best HMM model (Once Identified)
 
@@ -23,4 +23,5 @@ source(file = "Winter Selection - 3 INLA Analysis.R")
 source(file = "Winter Selection - 4 Results Clean Up.R")
 
 ## Create Graphs
+#Doesn't appear to run when source is used, but fine when run from script directly
 source(file = "Winter Selection - 5 Graphs.R")
