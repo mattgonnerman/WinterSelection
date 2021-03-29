@@ -31,7 +31,7 @@ ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   theme(legend.title.align=0.5) + 
   scale_colour_manual(name = "Behavioral\nState",
                       # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("yellow4", "violetred4", "royalblue4")) +   
+                      values = c("#46e300", "#f1a806", "#1cade4")) +   
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
@@ -55,7 +55,7 @@ ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   theme(legend.title.align=0.5) + 
   scale_colour_manual(name = "Behavioral\nState",
                       # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("yellow4", "violetred4", "royalblue4")) +   
+                      values = c("#46e300", "#f1a806", "#1cade4")) +   
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
