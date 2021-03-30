@@ -3,8 +3,18 @@ require(ggplot2)
 require(forcats)
 
 ### Comparison of Magnitude of Interactions
-interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
-  mutate(Beh_State = as.factor(Analysis)) %>%
+interactions.raw <- read.csv("Results/InteractionResults.csv") %>% 
+  mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge",
+                  ifelse(HabitatCov == "PropAg.Z", "Agriculture",
+                  ifelse(HabitatCov == "PropDev.z", "Developed",
+                  ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
+                  ifelse(HabitatCov == "PropSW.Z", "Softwoods",
+                  ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
+                  ifelse(HabitatCov == "BA.Z", "Basal Area",
+                  ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
+                  ifelse(HabitatCov == "SW.Z", "Percent Softwood",
+                         HabitatCov))))))))))%>%
+  mutate(Beh_State = factor(Analysis, levels = c("Roosting", "Stationary", "Mobile"))) %>%
   mutate(LC_Cov = as.factor(HabitatCov)) %>%
   rename(Interaction = mean, SD = sd)
 # interactions.raw$Beh_State <- factor(interactions.raw$Beh_State,
@@ -17,13 +27,13 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
 #Graph showing interaction terms for snow depth
 int.Snow <- interactions.raw %>% filter(WeatherCov == "SD")
 ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
-  geom_point(size = 1.5,
+  geom_point(size = 2,
              position = position_dodge(width = .4)) +
   geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
-                width = .2,
+                width = .3, size = .7,
                 position = position_dodge(width = .4)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2) +
-  theme_bw() + 
+  theme_bw(base_size = 15) + 
   xlab("Coefficient Estimate") +
   ylab("") +
   ggtitle("Snow Depth") +
@@ -31,23 +41,23 @@ ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   theme(legend.title.align=0.5) + 
   scale_colour_manual(name = "Behavioral\nState",
                       # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("#46e300", "#f1a806", "#1cade4")) +   
+                      values = c("#1cade4", "#f1a806", "#46e300")) +   
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
-ggsave("Results/SnowDepth_InteractionComp.jpeg", width = 8, height = 7, units = "in")
+ggsave("Results/SnowDepth_InteractionComp.jpeg", width = 10, height = 7, units = "in")
 
 
 #Graph showing interaction terms for Previous days wind chill
 int.Wind <- interactions.raw %>% filter(WeatherCov == "WC_prev")
 ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
-  geom_point(size = 1.5,
+  geom_point(size = 2,
              position = position_dodge(width = .4)) +
   geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
-                width = .2,
+                width = .3, size = .7,
                 position = position_dodge(width = .4)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2) +
-  theme_bw() + 
+  theme_bw(base_size = 15) + 
   xlab("Coefficient Estimate") +
   ylab("") +
   ggtitle("Wind Chill") +
@@ -55,11 +65,11 @@ ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, colo
   theme(legend.title.align=0.5) + 
   scale_colour_manual(name = "Behavioral\nState",
                       # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("#46e300", "#f1a806", "#1cade4")) +   
+                      values = c("#1cade4", "#f1a806", "#46e300")) +   
   scale_shape_manual(name = "Behavioral\nState",
                      # labels = c("Roost", "Stationary", "Mobile"),
                      values = c(15, 19, 17))
-ggsave("Results/WindChill_InteractionComp.jpeg", width = 8, height = 7, units = "in")
+ggsave("Results/WindChill_InteractionComp.jpeg", width = 10, height = 7, units = "in")
 
 
 #make big points
@@ -71,12 +81,18 @@ ggsave("Results/WindChill_InteractionComp.jpeg", width = 8, height = 7, units = 
 require(cowplot)
 
 interactions.raw <- read.csv("Results/CowplotData.csv") %>%
-  # mutate(Beh_State = factor(Beh_State, levels = c("Roost", "Stationary", "Mobile"))) %>%
-  # mutate(LC_Cov = factor(LC_Cov,
-  #                        levels = c("Distance to Edge", "Wind Exposure", "Proportion Ag",
-  #                                   "Proportion Dev", "Proportion SW",
-  #                                   "Mean Tree Height", "Basal Area", "% Softwood"))) %>%
-  arrange(Beh_State, LC_Cov)
+  arrange(Beh_State, LC_Cov) %>% 
+  mutate(LC_Cov = ifelse(LC_Cov == "DtFE.Z", "Dist. to Forest Edge",
+                  ifelse(LC_Cov == "PropAg.Z", "Agriculture",
+                  ifelse(LC_Cov == "PropDev.z", "Developed",
+                  ifelse(LC_Cov == "PropFoodSub.Z", "Food Subsidy",
+                  ifelse(LC_Cov == "PropSW.Z", "Softwoods",
+                  ifelse(LC_Cov == "Wind.Exp.Z", "Wind Exposure",
+                  ifelse(LC_Cov == "BA.Z", "Basal Area",
+                  ifelse(LC_Cov == "Ht.Z", "Mean Tree Height",
+                  ifelse(LC_Cov == "SW.Z", "Percent Softwood",
+                         LC_Cov))))))))))
+  
 
 int.Snow.Roost <- interactions.raw %>% filter(Weath_Cov == "SD") %>% filter(Beh_State == "Roosting")
 int.Wind.Roost <- interactions.raw %>% filter(Weath_Cov == "WC_prev") %>% filter(Beh_State == "Roosting")
@@ -134,13 +150,14 @@ for(i in 1:length(int.Snow.Roost$LC_Cov)){
                         Int.Coef = int.Snow.Roost$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(0,4,8), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   snow.list[[i]] <- snow.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
@@ -148,13 +165,15 @@ for(i in 1:length(int.Snow.Roost$LC_Cov)){
 
 legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
-jpeg('Results/Roost_Snow.jpg', width = 1300, height = 1500)
+jpeg('Results/Roost_Snow.jpg', width = 1500, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+          )
 dev.off()
 
 ##Wind Chill
@@ -168,13 +187,14 @@ for(i in 1:length(int.Wind.Roost$LC_Cov)){
                         Int.Coef = int.Wind.Roost$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(27,15,4), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   wind.list[[i]] <- wind.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
@@ -183,13 +203,15 @@ for(i in 1:length(int.Wind.Roost$LC_Cov)){
 legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.width=unit(1,"inch")))
 
 
-jpeg('Results/Roost_Wind.jpg', width = 1300, height = 1500)
+jpeg('Results/Roost_Wind.jpg', width = 1500, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+)
 dev.off()
 
 ###Loafing 
@@ -204,13 +226,14 @@ for(i in 1:length(int.Snow.Loaf$LC_Cov)){
                         Int.Coef = int.Snow.Loaf$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(0,4,8), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   snow.list[[i]] <- snow.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
@@ -221,10 +244,12 @@ legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.wid
 jpeg('Results/Loafing_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+)
 dev.off()
 
 ##Wind Chill
@@ -238,13 +263,14 @@ for(i in 1:length(int.Wind.Loaf$LC_Cov)){
                         Int.Coef = int.Wind.Loaf$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(27,15,4), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   wind.list[[i]] <- wind.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
@@ -255,10 +281,12 @@ legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.wid
 jpeg('Results/Loafing_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+)
 dev.off()
 
 ###Foraging
@@ -273,13 +301,14 @@ for(i in 1:length(int.Snow.Forage$LC_Cov)){
                         Int.Coef = int.Snow.Forage$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(0,4,8), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   snow.list[[i]] <- snow.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   snow.plot <- ggplot(data = snow.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(snow.df$LC[i]) + ylab("")
   
   snow.plots[[i]] <- snow.plot + theme(legend.position="none")
@@ -291,10 +320,12 @@ legend <- get_legend(snow.plot + theme(legend.position = "right", legend.key.wid
 jpeg('Results/Foraging_Snow.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = snow.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+)
 dev.off()
 
 ##Wind Chill
@@ -308,13 +339,14 @@ for(i in 1:length(int.Wind.Forage$LC_Cov)){
                         Int.Coef = int.Wind.Forage$Interaction[i],
                         LC.Val = rep(seq(-2, 2,.2),3),
                         W.Val = rep(c(27,15,4), each = 21),
-                        W.Condition = rep(c("Good","Average","Poor"), each = 21))
+                        W.Condition = rep(c("Favorable","Average","Poor"), each = 21)) %>%
+    mutate(W.Condition = factor(W.Condition, levels = c("Favorable","Average","Poor")))
   wind.list[[i]] <- wind.df %>%
-    mutate(Est = exp((LC.Coef*LC.Val) + (W.Coef*W.Val) + (Int.Coef*LC.Val*W.Val)))
+    mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))
   wind.plot <- ggplot(data = wind.list[[i]], aes(x = LC.Val, y = Est, group = W.Condition)) +
-    geom_line(aes(linetype = W.Condition), size = 1.4) +
+    geom_line(aes(linetype = W.Condition), size = 1.6) +
     scale_linetype_manual(values = c("solid", 'dotdash', "dotted")) +
-    theme_classic(base_size = 25) +
+    theme_classic(base_size = 35) +
     xlab(wind.df$LC[i]) + ylab("")
   
   wind.plots[[i]] <- wind.plot + theme(legend.position="none")
@@ -326,10 +358,12 @@ legend <- get_legend(wind.plot + theme(legend.position = "right", legend.key.wid
 jpeg('Results/Foraging_Wind.jpg', width = 1800, height = 1500)
 plot_grid(plotlist = wind.plots,
           legend,
-          labels = "auto",
           nrow = 3,
+          # labels = "auto",
+          # label_size = 35,
           align = "hv",
-          axis = "lb")
+          axis = "lb"
+)
 dev.off()
 
 #### Momentuhmm Transition Probability graphs
