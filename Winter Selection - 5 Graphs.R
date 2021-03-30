@@ -19,7 +19,7 @@ int.Snow <- interactions.raw %>% filter(WeatherCov == "SD")
 ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_point(size = 1.5,
              position = position_dodge(width = .4)) +
-  geom_errorbar(aes(xmin = Interaction - (1.96*SD), xmax = Interaction + (1.96*SD)),
+  geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
                 width = .2,
                 position = position_dodge(width = .4)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2) +
@@ -43,7 +43,7 @@ int.Wind <- interactions.raw %>% filter(WeatherCov == "WC_prev")
 ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_point(size = 1.5,
              position = position_dodge(width = .4)) +
-  geom_errorbar(aes(xmin = Interaction - (1.96*SD), xmax = Interaction + (1.96*SD)),
+  geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
                 width = .2,
                 position = position_dodge(width = .4)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2) +

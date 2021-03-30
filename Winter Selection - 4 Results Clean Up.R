@@ -89,7 +89,7 @@ for(i in 1:length(loaflist)){
     mutate(HabitatCov = rownames(results.matrix)[1]) %>%
     mutate(CovName = rownames(results.matrix))
   
-  info.cow.ind <- data.frame(Beh_State = "Loafing",
+  info.cow.ind <- data.frame(Beh_State = "Stationary",
                              LC_Cov = indresult[1,6],
                              LC_Coef = indresult[1,1],
                              Weath_Cov = indresult[1,5],
@@ -97,7 +97,7 @@ for(i in 1:length(loaflist)){
                              Interaction = indresult[4,1])
   info.cow <- rbind(info.cow, info.cow.ind)
   
-  ind.ms <- data.frame(Beh_State = "Loafing",
+  ind.ms <- data.frame(Beh_State = "Stationary",
                        LC_Cov = indresult[1,6],
                        Weath_Cov = indresult[1,5],
                        WAIC = loaflist[[i]]$waic$waic,
@@ -114,11 +114,11 @@ for(i in 1:length(loaflist)){
   }
 }
 
-write.csv(loafresults, "Results/loafresults.full.csv", row.names = F)
-write.csv(loafmodelselection %>% arrange(Weath_Cov, DIC), "Results/loafmodelselection.csv", row.names = F)
+write.csv(loafresults, "Results/stationaryresults.full.csv", row.names = F)
+write.csv(loafmodelselection %>% arrange(Weath_Cov, DIC), "Results/stationarymodelselection.csv", row.names = F)
 loafinteractions <- loafresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
-  mutate(Analysis = "Loafing")
+  mutate(Analysis = "Stationary")
 
 fullinteractions <- rbind(roostinteractions, loafinteractions)
 
@@ -152,7 +152,7 @@ for(i in 1:length(foragelist)){
     mutate(HabitatCov = rownames(results.matrix)[1]) %>%
     mutate(CovName = rownames(results.matrix))
   
-  info.cow.ind <- data.frame(Beh_State = "Foraging",
+  info.cow.ind <- data.frame(Beh_State = "Mobile",
                              LC_Cov = indresult[1,6],
                              LC_Coef = indresult[1,1],
                              Weath_Cov = indresult[1,5],
@@ -160,7 +160,7 @@ for(i in 1:length(foragelist)){
                              Interaction = indresult[4,1])
   info.cow <- rbind(info.cow, info.cow.ind)
   
-  ind.ms <- data.frame(Beh_State = "Foraging",
+  ind.ms <- data.frame(Beh_State = "Mobile",
                        LC_Cov = indresult[1,6],
                        Weath_Cov = indresult[1,5],
                        WAIC = foragelist[[i]]$waic$waic,
@@ -177,7 +177,7 @@ for(i in 1:length(foragelist)){
   }
 }
 
-write.csv(forageresults, "Results/forageresults.full.csv", row.names = F)
+write.csv(forageresults, "Results/mobileresults.full.csv", row.names = F)
 forageinteractions <- forageresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
   mutate(Analysis = "Foraging")
@@ -185,5 +185,5 @@ forageinteractions <- forageresults %>%
 
 fullinteractions <- rbind(fullinteractions, forageinteractions)
 write.csv(fullinteractions, 'Results/InteractionResults.csv', row.names = F)
-write.csv(foragemodelselection %>% arrange(Weath_Cov, DIC), "Results/foragemodelselection.csv", row.names = F)
+write.csv(foragemodelselection %>% arrange(Weath_Cov, DIC), "Results/mobilemodelselection.csv", row.names = F)
 write.csv(info.cow, 'Results/CowplotData.csv', row.names = F)
