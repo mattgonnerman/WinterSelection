@@ -11,6 +11,7 @@ plotPR(hmm.top.model)
 hist(turk_top_states)
 plot(hmm.top.model,legend.pos="right")
 
+save(hmm.top.model, file = "hmmtopmodel.RData")
 
 #Save HMM Outputs as CSV
 write.csv(hmm.top.model$rawCovs, 'Results/HMM - RawCovs.csv')
