@@ -180,7 +180,7 @@ for(i in 1:length(foragelist)){
 write.csv(forageresults, "Results/mobileresults.full.csv", row.names = F)
 forageinteractions <- forageresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
-  mutate(Analysis = "Foraging")
+  mutate(Analysis = "Mobile")
 
 
 fullinteractions <- rbind(fullinteractions, forageinteractions)
