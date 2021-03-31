@@ -16,13 +16,13 @@ Par0_m0.zm <- list(step=c(2, 50,120, #mean
 
 # fit model
 turk_m0.zm <- fitHMM(data = turkeyData.zm,
-                     retryFits = retryFits,
+                     retryFits = 1,
                      nbStates = nbStates,
                      dist = dist,
                      Par0 = Par0_m0.zm,
                      estAngleMean = list(angle=FALSE),
                      stateNames = stateNames,
-                     ncores = 8)
+                     ncores = (detectCores()/2))
 
 ##############################################################
 ### MODEL 1
@@ -94,7 +94,7 @@ Par_m1.zm <- getPar0(model = turk_m0.zm,
 
 # fit model
 turk_m1.zm <- fitHMM(data = turkeyData.zm,
-                     retryFits = retryFits,
+                     retryFits = 1,
                      nbStates = nbStates,
                      dist = dist,
                      Par0 = Par_m1.zm$Par,
@@ -105,7 +105,7 @@ turk_m1.zm <- fitHMM(data = turkeyData.zm,
                      estAngleMean = list(angle=FALSE),
                      prior = prior,
                      stateNames = stateNames,
-                     ncores = 8,
+                     ncores = (detectCores()/2),
                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
 )
 
@@ -194,7 +194,7 @@ turk_m2.zm <- fitHMM(data = turkeyData.zm,
                      estAngleMean = list(angle=FALSE),
                      prior = prior,
                      stateNames = stateNames,
-                     ncores = 8,
+                     ncores = (detectCores()/2),
                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
 )
 

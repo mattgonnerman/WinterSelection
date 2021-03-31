@@ -1,59 +1,32 @@
-# ### Model Selection
-# # Finding best parameter restrictions
-# hmm.aic.A <- AIC(turk_mA0.zm,
-#                  turk_mA1.zm,
-#                  turk_mA2.zm,
-#                  turk_mA3.zm,
-#                  turk_mA4.zm,
-#                  turk_mA5.zm
-#                )
-# hmm.aic.A
-# write.csv(hmm.aic.A, "HMM_AIC_A.csv", row.names = F)
-# hmm.top.model <- get(hmm.aic.A[1,1])
-# 
-# #Best Model With Covariates
-# hmm.aic.B <- AIC(get(hmm.aic.A[1,1]),
-#                  
-# )
-# hmm.aic.B
-# write.csv(hmm.aic.B, "HMM_AIC_B.csv", row.names = F)
-# 
-# 
-# 
-# hmm.aicC[1,1]
-# hmm.top.model <- get(hmm.aicC[1,1])
-
+#Final Model
 hmm.top.model <- turk_m2.zm
-
-write.csv(turk_m5.zm$rawCovs, 'Results/HMM - RawCovs.csv')
-write.csv(turk_m5.zm$mle$beta, 'Results/HMM - MLE of betas.csv')
-write.csv(turk_m5.zm$mle$angle, 'Results/HMM - MLE of angle.csv')
-write.csv(turk_m5.zm$mle$step, 'Results/HMM - MLE of step.csv')
 
 #Associate behavioral states from best model with original data 
 turk_top_states <- viterbi(hmm.top.model)
 turkey_states <- turkeyData.zm
 turkey_states$State <- turk_top_states
+
 #Diagnostic Plots
-# plotPR(hmm.top.model)
-# hist(turk_top_states)
-# plot(hmm.top.model,legend.pos="right")
+plotPR(hmm.top.model)
+hist(turk_top_states)
+plot(hmm.top.model,legend.pos="right")
+
+
+#Save HMM Outputs as CSV
+write.csv(hmm.top.model$rawCovs, 'Results/HMM - RawCovs.csv')
+write.csv(hmm.top.model$mle$beta, 'Results/HMM - MLE of betas.csv')
+write.csv(hmm.top.model$mle$angle, 'Results/HMM - MLE of angle.csv')
+write.csv(hmm.top.model$mle$step, 'Results/HMM - MLE of step.csv')
 
 #Write output to csv to bring in, simplify, and combine with SSF data
 write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
 
-
 #Checkout Leaflet
-
 
 ###########################################################################
 ########################
 ### CHECKING OUTPUTS ###
 ########################
-# Look at output maps/graphs
-# plot(turk_m1.zm,legend.pos="right")
-# hist(turk_m1_states)
-
 # #Where are the cases localized temporally?
 # state_times <- turkey_states %>%
 #   mutate(State = as.factor(State)) %>%

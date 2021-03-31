@@ -5,6 +5,7 @@ require(dplyr)
 require(momentuHMM)
 require(ggplot2)
 require(lubridate)
+require(parallel)
 
 ################################################
 ### Load Movement Data Used in INLA Analysis ###
@@ -99,7 +100,7 @@ ln.prior <- function(theta) dnorm(theta[2],-4,2,log=TRUE)
 
 #Use crawl function to fill in missing locations
 Turkey.crawl.zm1 <- crawlWrap(raw.move.df, Time.name = "Timestamp", timeStep = "hour",
-                             attempts=20, fixPar = c(NA, NA), prior = ln.prior, theta = c(1,1), retryFits=10, ncores = 8)
+                             attempts=10, fixPar = c(NA, NA), prior = ln.prior, theta = c(1,1), retryFits=10, ncores = (detectCores()/2))
 #plot(Turkey.crawl.zm)
 # create momentuHMMData object from crwData object
 turkeyData.zm1 <- prepData(data=Turkey.crawl.zm1)
