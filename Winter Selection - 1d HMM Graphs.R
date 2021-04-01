@@ -1,3 +1,5 @@
+load("hmmtopmodel.RData")
+
 require(ggplot2)
 require(dplyr)
 require(tidyverse)
@@ -94,15 +96,15 @@ fit <- vglm(cbind(normal, mild, severe) ~ let,
 fitted(fit)
 predict(fit)
 
-mlogit(fitted(fit))
-mlogit(fitted(fit)) - predict(fit)  # Should be all 0s
+multilogitlink(fitted(fit))
+multilogitlink(fitted(fit)) - predict(fit)  # Should be all 0s
 
-multilogit(predict(fit), inverse = TRUE)  # rowSums() add to unity
-multilogit(predict(fit), inverse = TRUE, refLevel = 1)  # For illustration only
-multilogit(predict(fit), inverse = TRUE) - fitted(fit)  # Should be all 0s
+multilogitlink(predict(fit), inverse = TRUE)  # rowSums() add to unity
+multilogitlink(predict(fit), inverse = TRUE, refLevel = 1)  # For illustration only
+multilogitlink(predict(fit), inverse = TRUE) - fitted(fit)  # Should be all 0s
 
-mlogit(fitted(fit), deriv = 1)
-mlogit(fitted(fit), deriv = 2)
+multilogitlink(fitted(fit), deriv = 1)
+multilogitlink(fitted(fit), deriv = 2)
 
 
 ##################################################

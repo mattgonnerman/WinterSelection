@@ -100,11 +100,8 @@ ln.prior <- function(theta) dnorm(theta[2],-4,2,log=TRUE)
 
 #Use crawl function to fill in missing locations
 Turkey.crawl.zm1 <- crawlWrap(raw.move.df, Time.name = "Timestamp", timeStep = "hour",
-<<<<<<< HEAD
                              attempts=10, fixPar = c(NA, NA), prior = ln.prior, theta = c(1,1), retryFits=10, ncores = (detectCores()/2))
-=======
-                             attempts=20, fixPar = c(NA, NA), prior = ln.prior, theta = c(1,1), retryFits=10, ncores = 5)
->>>>>>> 2bbe2403b6056fb32251b6f561c46b483b142c03
+
 #plot(Turkey.crawl.zm)
 # create momentuHMMData object from crwData object
 turkeyData.zm1 <- prepData(data=Turkey.crawl.zm1)
