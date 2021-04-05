@@ -74,7 +74,17 @@ setkey(full_all, BirdID, timestamp)[,dateMatch:=timestamp]
 setkey(hmm_data.raw, BirdID, timestamp)[,dateMatch:=timestamp]
 full_all_hmm2 <- hmm_data.raw[full_all, roll = 'nearest'] %>%
   filter(!is.na(sensor_type_id)) %>%
-  select(ID, BirdID, location_lat, location_long, timestamp, State)
+  select(ID, BirdID, location_lat, location_long, timestamp, State) %>% 
+  arrange(ID, timestamp) %>%
+  group_by(ID) %>%
+  mutate(sincelast = as.numeric(timestamp - lag(timestamp))) %>%
+  mutate(tillnext = as.numeric(lead(timestamp) - timestamp)) %>%
+  ungroup() %>%
+  mutate(keep = ifelse(abs(sincelast) > 2 & tillnext > 2, 1,
+                       ifelse(minute(timestamp) != 0 & second(timestamp) != 0, 1, 0))) %>%
+  filter(keep == 1) %>%
+  dplyr::select(-keep, -sincelast, -tillnext)
+
 write.csv(full_all_hmm2, "AllUsedPoints.csv", row.names = F) #All points 
 
 # hmm_diff_check <- hmm_data.raw[full_all, roll = 'nearest'] %>%
