@@ -1,4 +1,6 @@
+require(momentuHMM)
 load("hmmtopmodel.RData")
+hmm.top.model
 
 require(ggplot2)
 require(dplyr)
