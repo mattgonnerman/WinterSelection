@@ -1,6 +1,3 @@
-#Final Model
-hmm.top.model <- turk_m2.zm
-
 require(momentuHMM)
 load("hmmtopmodel.RData")
 hmm.top.model
@@ -10,20 +7,21 @@ turk_top_states <- viterbi(hmm.top.model)
 turkey_states <- turkeyData.zm
 turkey_states$State <- turk_top_states
 
+#Write output to csv to bring in, simplify, and combine with SSF data
+write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
+
 #Diagnostic Plots
 plotPR(hmm.top.model)
 hist(turk_top_states)
 plot(hmm.top.model,legend.pos="right")
 
-save(hmm.top.model, file = "hmmtopmodel.RData")
-
-#Save HMM Outputs as CSV
+#Save Raw HMM Outputs as CSV
 write.csv(hmm.top.model$rawCovs, 'Results/HMM - RawCovs.csv')
 write.csv(hmm.top.model$mle$beta, 'Results/HMM - MLE of betas.csv')
 write.csv(hmm.top.model$mle$angle, 'Results/HMM - MLE of angle.csv')
 write.csv(hmm.top.model$mle$step, 'Results/HMM - MLE of step.csv')
 
-#Transition probabilities with Confidence Intervals
+#Save Betas for Transition probabilities with Confidence Intervals
 require(dplyr)
 Beta_TP_beta_lower <- as.data.frame(hmm.top.model$CIbeta$beta$lower) %>%
   mutate(CI = "lower") %>%
@@ -63,72 +61,53 @@ write.csv(TP_beta_w_CI_wide, "Results/HMM - TP_with_CI.csv", row.names = F)
 
 
 
-#Write output to csv to bring in, simplify, and combine with SSF data
-write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
-
-#Checkout Leaflet
-
-###########################################################################
-########################
-### CHECKING OUTPUTS ###
-########################
-# #Where are the cases localized temporally?
-# state_times <- turkey_states %>%
-#   mutate(State = as.factor(State)) %>%
-#   group_by(State, hour) %>%
-#   summarize(Total = n())
-# 
-# require(tidyr)
-# state_days <- turkey_states %>%
-#   mutate(State = as.factor(State)) %>%
-#   group_by(ID, YDay, State) %>%
-#   summarize(Total = n()) %>%
-#   group_by(YDay, State) %>%
-#   summarize(Avg = mean(Total)) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = "State", values_from = "Avg") %>%
-#   rename(Roosting = `1`, Loafing = `2`, Foraging = `3`) %>%
-#   mutate(Ratio = Loafing/Foraging)%>%
-#   mutate(L_propday = Loafing/(24-Roosting))%>%
-#   mutate(F_propday = Foraging/(24-Roosting))
-# 
-# 
-# ggplot(data = state_times, aes(x = hour, y = Total, group = as.factor(State))) +
-#   geom_point(aes(shape = State, color = as.factor(State), size = 3))
-# 
-# ggplot(data = state_days, aes(x = YDay)) +
-#   geom_point(aes(y = L_propday, shape = '21', size = 3)) +
-#   geom_point(aes(y = F_propday, shape = '25', size = 3)) +
-#   xlim(0,100)
 
 
-# turkey_states1 <- turkey_states %>%
-#   mutate(Date = as.Date(Timestamp)) %>%
-#   #filter(hour(Timestamp) %in% ) #Maybe consider filtering out nightime hours but will need to use suncalc
-#   group_by(ID, Date) %>%
-#   summarize(State_Day_Avg = mean(State))
-# 
-# DailyStates <- ggplot(data=turkey_states1, aes(x = Date, y=State_Day_Avg)) +
-#   geom_point(size = 1.5) +
-#   xlab("Date") +
-#   ylab("Daily Average State") +
-#   theme_grey(base_size = 18) +
-#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1) + #best fit line
-#   theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
-#   theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)))
-# DailyStates
-# 
-# id_list = unique(turkey_states$ID)
-# id = id_list[3]
-# states_onebird <- turkey_states1 %>% filter( ID == id)
-# graph_onebird <- ggplot(data = states_onebird, aes(x = Date, y = State_Day_Avg)) +
-#   geom_point(size = 1.5) +
-#   labs(x = "Date", y = "State", title = id) +
-#   theme_grey(base_size = 18) +
-#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1)  #best fit line
-# graph_onebird  
+#Step Length Estimates and CI
+step.est <- as.data.frame(hmm.top.model$CIreal$step$est) %>%
+  mutate(CI = "Estimate")
+step.est$Type <- row.names(step.est)
+step.lower <- as.data.frame(hmm.top.model$CIreal$step$lower) %>%
+  mutate(CI = "Lower")
+step.lower$Type <- row.names(step.est)
+step.upper <- as.data.frame(hmm.top.model$CIreal$step$upper) %>%
+  mutate(CI = "Upper")
+step.upper$Type <- row.names(step.est)
+
+step.all <- rbind(step.est, step.lower, step.upper) %>%
+  rename(Roosting = roost, Stationary = loafing, Mobile = foraging) %>%
+  group_by(Type) %>%
+  pivot_wider(names_from = CI, values_from = c(Roosting, Stationary, Mobile))
+write.csv(step.all, "Results/HMM - Step Length with CI.csv", row.names = F)
+
+#Angle Concentration Estimates and CI
+angle.est <- as.data.frame(hmm.top.model$CIreal$angle$est) %>%
+  mutate(CI = "Estimate")
+angle.est$Type <- row.names(angle.est)
+angle.lower <- as.data.frame(hmm.top.model$CIreal$angle$lower) %>%
+  mutate(CI = "Lower")
+angle.lower$Type <- row.names(angle.est)
+angle.upper <- as.data.frame(hmm.top.model$CIreal$angle$upper) %>%
+  mutate(CI = "Upper")
+angle.upper$Type <- row.names(angle.est)
+
+angle.all <- rbind(angle.est, angle.lower, angle.upper) %>%
+  rename(Roosting = roost, Stationary = loafing, Mobile = foraging)# %>%
+  # group_by(Type) %>%
+  # pivot_wider(names_from = CI, values_from = c(Roosting, Stationary, Mobile))
+write.csv(angle.all, "Results/HMM - Angle Concentration with CI.csv", row.names = F)
 
 
-#Need to figure out a way to get the State values onto the points
-#Need to figure out a way to incorproate individual variation into transition/mean etc.
-#induce some sort of variation in the crawl wrap
+
+
+#Time Spent in each State
+require(lubridate)
+turkey_states <-  read.csv("Results/HMMBehavioralStates_output.csv")
+time_spent <- turkey_states %>%
+  select(ID, step, angle, Timestamp,WC.Z, SD.Z, State) %>%
+  mutate(Timestamp_UTC = as.POSIXct(Timestamp, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) %>%
+  mutate(Timestamp = with_tz(Timestamp_UTC, tzone = "America/New_York")) %>%
+  mutate(hour = hour(Timestamp)) %>%
+  mutate(OrdinalDay = yday(Timestamp))
+
+head(time_spent)
