@@ -1,6 +1,10 @@
 #Final Model
 hmm.top.model <- turk_m2.zm
 
+require(momentuHMM)
+load("hmmtopmodel.RData")
+hmm.top.model
+
 #Associate behavioral states from best model with original data 
 turk_top_states <- viterbi(hmm.top.model)
 turkey_states <- turkeyData.zm
@@ -18,6 +22,46 @@ write.csv(hmm.top.model$rawCovs, 'Results/HMM - RawCovs.csv')
 write.csv(hmm.top.model$mle$beta, 'Results/HMM - MLE of betas.csv')
 write.csv(hmm.top.model$mle$angle, 'Results/HMM - MLE of angle.csv')
 write.csv(hmm.top.model$mle$step, 'Results/HMM - MLE of step.csv')
+
+#Transition probabilities with Confidence Intervals
+require(dplyr)
+Beta_TP_beta_lower <- as.data.frame(hmm.top.model$CIbeta$beta$lower) %>%
+  mutate(CI = "lower") %>%
+  mutate(Type = "beta")
+Beta_TP_beta_lower$ID <- row.names(Beta_TP_beta_lower)
+row.names(Beta_TP_beta_lower) <- c()
+Beta_TP_beta_upper <- as.data.frame(hmm.top.model$CIbeta$beta$upper)  %>%
+  mutate(CI = "upper") %>%
+  mutate(Type = "beta")
+Beta_TP_beta_upper$ID <- row.names(Beta_TP_beta_upper)
+row.names(Beta_TP_beta_upper) <- c()
+Beta_TP_est_beta <- as.data.frame(hmm.top.model$mle$beta)  %>%
+  mutate(CI = "estimate") %>%
+  mutate(Type = "beta")
+Beta_TP_est_beta$ID <- row.names(Beta_TP_est_beta)
+row.names(Beta_TP_est_beta) <- c()
+
+require(tidyr)
+TP_beta_w_CI <- rbind(Beta_TP_beta_lower, Beta_TP_beta_upper, Beta_TP_est_beta)
+colnames(TP_beta_w_CI) <- c("TP1_2", "TP1_3", "TP2_1", "TP2_3", "TP3_1", "TP3_2", "CI", "Type", "ID")
+TP_beta_w_CI_wide <- TP_beta_w_CI %>%
+  select(-Type) %>%
+  mutate(CI = factor(CI, levels = c("estimate", "lower", "upper"))) %>%
+  group_by(ID) %>%
+  arrange(CI) %>%
+  pivot_wider(names_from = CI, values_from = c(TP1_2, TP1_3, TP2_1, TP2_3, TP3_1, TP3_2))%>% 
+  ungroup()
+write.csv(TP_beta_w_CI_wide, "Results/HMM - TP_with_CI.csv", row.names = F)
+
+# 
+# Beta_TP_real_lower <- as.data.frame(hmm.top.model$CIbeta$real$lower) %>%
+#   mutate(CI = "lower") %>%
+#   mutate(Type = "real")
+# Beta_TP_real_upper <- as.data.frame(hmm.top.model$CIbeta$real$upper)  %>%
+#   mutate(CI = "upper") %>%
+#   mutate(Type = "real")
+
+
 
 #Write output to csv to bring in, simplify, and combine with SSF data
 write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")

@@ -198,6 +198,9 @@ turk_m2.zm <- fitHMM(data = turkeyData.zm,
                      formula = ~ WC.Z + SD.Z + cosinor(hour, period = 24) + ID
 )
 
+#Final Model
+hmm.top.model <- turk_m2.zm
+save(hmm.top.model, file = "hmmtopmodel.RData")
 
 
 

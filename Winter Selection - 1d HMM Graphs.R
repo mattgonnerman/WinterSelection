@@ -1,7 +1,3 @@
-require(momentuHMM)
-load("hmmtopmodel.RData")
-hmm.top.model
-
 require(ggplot2)
 require(dplyr)
 require(tidyverse)
@@ -78,185 +74,147 @@ TPbetas <- read.csv('Results/HMM - MLE of betas.csv')
 row.names(TPbetas) <- TPbetas$X
 TPbetas <- TPbetas %>% select(-X)
 TPbetas <- as.data.frame(t(TPbetas)) %>%
-  dplyr::select('(Intercept)', WC.Z, SD.Z, 'cosinorCos(hour, period = 24)', 'cosinorSin(hour, period = 24)')
+  dplyr::select('(Intercept)', WC.Z, SD.Z, 'cosinorCos(hour, period = 24)', 'cosinorSin(hour, period = 24)') %>%
+  mutate(Start_State = c(1,1,2,2,3,3) ) %>%
+  mutate(End_State = c(2,3,1,3,1,2) )
 
-X.wc <- seq(-2,.5,.1)
-X.sd <- seq(-.5,6,.1)
-X.coshour <- cos(2*pi*seq(0,24, .25)/24)
-X.sinhour <- sin(2*pi*seq(0,24, .25)/24)
-
-x <-1
-
-eq <- TPbetas[x,1] + TPbetas[x,2]*-1 + TPbetas[x,3]*X.sd + TPbetas[x,4]*cos(2*pi*11.54/24) + TPbetas[x,5]*sin(2*pi*11.54/24)
-plot((exp(eq)/(1+exp(eq)))~X.sd)
-
-
-require(VGAM)
-pneumo <- transform(pneumo, let = log(exposure.time))
-fit <- vglm(cbind(normal, mild, severe) ~ let,
-            multinomial, trace = TRUE, data = pneumo)  # For illustration only!
-fitted(fit)
-predict(fit)
-
-multilogitlink(fitted(fit))
-multilogitlink(fitted(fit)) - predict(fit)  # Should be all 0s
-
-multilogitlink(predict(fit), inverse = TRUE)  # rowSums() add to unity
-multilogitlink(predict(fit), inverse = TRUE, refLevel = 1)  # For illustration only
-multilogitlink(predict(fit), inverse = TRUE) - fitted(fit)  # Should be all 0s
-
-multilogitlink(fitted(fit), deriv = 1)
-multilogitlink(fitted(fit), deriv = 2)
-
-
-##################################################
-## Plot the t.p. as functions of the covariates ##
-##################################################
-
-covs=NULL
-meansList<-c("matrix","numeric","integer","logical","Date","POSIXlt","POSIXct","difftime")
-if(is.null(covs)){
-    covs <- m$data[which(m$data$ID %in% ID),][1,]
-    for(j in names(m$data)[which(unlist(lapply(m$data,function(x) any(class(x) %in% meansList))))]){
-      if(inherits(m$data[[j]],"angle")) covs[[j]] <- CircStats::circ.mean(m$data[[j]][which(m$data$ID %in% ID)][!is.na(m$data[[j]][which(m$data$ID %in% ID)])])
-      else covs[[j]]<-mean(m$data[[j]][which(m$data$ID %in% ID)],na.rm=TRUE)
-    }
+###Wind Chill
+for(i in 1:nrow(TPbetas)){
+  # 1->?
+  TP1 <- data.frame(Intercept = TPbetas[i,1],
+                      WC.coef = TPbetas[i,2],
+                      SD.coef = TPbetas[i,3],
+                      Cos.coef = TPbetas[i,4],
+                      Sin.coef = TPbetas[i,5],
+                      hour = 9,
+                      SD.cov = 0,
+                      WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+  ) %>%
+    mutate(TP1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+    mutate(TP1_exp = exp(TP1_reg)) %>%
+    select(WC.cov, TP1_reg, TP1_exp)
+  TP2 <- data.frame(Intercept = TPbetas[i,1],
+                      WC.coef = TPbetas[i,2],
+                      SD.coef = TPbetas[i,3],
+                      Cos.coef = TPbetas[i],4],
+                      Sin.coef = TPbetas[i,5],
+                      hour = 9,
+                      SD.cov = 0,
+                      WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+  ) %>%
+    mutate(TP2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+    mutate(TP2_exp = exp(TP2_reg)) %>%
+    select(TP2_reg, TP2_exp)
+  TP <- cbind(TP1, TP2) %>%
+    mutate(TP1_2 = TP1_2_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
+    mutate(TP1_3 = TP1_3_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
+    mutate(TP1_1 = 1-TP1_3-TP1_2)
 }
 
-gamInd<-(length(m$mod$estimate)-(nbCovs+1)*nbStates*(nbStates-1)*mixtures+1):(length(m$mod$estimate))-(ncol(m$covsPi)*(mixtures-1))-ifelse(nbRecovs,nbRecovs+1+nbG0covs+1,0)-ncol(m$covsDelta)*(nbStates-1)*(!m$conditions$stationary)*mixtures
-quantSup<-qnorm(1-(1-alpha)/2)
-  
-# values of each covariate
-rawCovs <- m$rawCovs
-if(is.null(covs)) {
-  rawCovs <- m$rawCovs
-  meanCovs <- colSums(rawCovs)/nrow(rawCovs)
-  } else {
-    rawCovs <- m$data[,names(covs),drop=FALSE]
-    meanCovs <- as.numeric(covs)
-  }
-covIndex <- 1:ncol(rawCovs)
+# 1->?
+TP1_2 <- data.frame(Intercept = TPbetas[1,1],
+                    WC.coef = TPbetas[1,2],
+                    SD.coef = TPbetas[1,3],
+                    Cos.coef = TPbetas[1,4],
+                    Sin.coef = TPbetas[1,5],
+                    hour = 9,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+                    ) %>%
+  mutate(TP1_2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP1_2_exp = exp(TP1_2_reg)) %>%
+  select(WC.cov, TP1_2_reg, TP1_2_exp)
+TP1_3 <- data.frame(Intercept = TPbetas[2,1],
+                    WC.coef = TPbetas[2,2],
+                    SD.coef = TPbetas[2,3],
+                    Cos.coef = TPbetas[2,4],
+                    Sin.coef = TPbetas[2,5],
+                    hour = 9,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+) %>%
+  mutate(TP1_3_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP1_3_exp = exp(TP1_3_reg)) %>%
+  select(TP1_3_reg, TP1_3_exp)
+TP1 <- cbind(TP1_2, TP1_3) %>%
+  mutate(TP1_2 = TP1_2_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
+  mutate(TP1_3 = TP1_3_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
+  mutate(TP1_1 = 1-TP1_3-TP1_2)
 
-covNames <- getCovNames(m,p,i)
-DMterms<-covNames$DMterms
- 
-for(cov in covIndex) {
-  if(!is.factor(rawCovs[,cov])){
-     gridLength <- 101
-     hGridLength <- gridLength*ifelse(inherits(m,"hierarchical"),nlevels(m$data$level),1)
-        
-        inf <- min(rawCovs[,cov],na.rm=TRUE)
-        sup <- max(rawCovs[,cov],na.rm=TRUE)
-        
-        # set all covariates to their mean, except for "cov"
-        # (which takes a grid of values from inf to sup)
-        tempCovs <- data.frame(matrix(covs[names(rawCovs)][[1]],nrow=hGridLength,ncol=1))
-        if(ncol(rawCovs)>1)
-          for(i in 2:ncol(rawCovs))
-            tempCovs <- cbind(tempCovs,rep(covs[names(rawCovs)][[i]],gridLength))
-        
-        tempCovs[,cov] <- rep(seq(inf,sup,length=gridLength),each=hGridLength/gridLength)
-      } else {
-        gridLength<- nlevels(rawCovs[,cov])
-        hGridLength <- gridLength*ifelse(inherits(m,"hierarchical"),nlevels(m$data$level),1)
-        # set all covariates to their mean, except for "cov"
-        tempCovs <- data.frame(matrix(covs[names(rawCovs)][[1]],nrow=hGridLength,ncol=1))
-        if(ncol(rawCovs)>1)
-          for(i in 2:ncol(rawCovs))
-            tempCovs <- cbind(tempCovs,rep(covs[names(rawCovs)][[i]],gridLength))
-        
-        tempCovs[,cov] <- as.factor(rep(levels(rawCovs[,cov]),each=hGridLength/gridLength))
-      }
-      
-      names(tempCovs) <- names(rawCovs)
-      tmpcovs<-covs[names(rawCovs)]
-      for(i in which(unlist(lapply(rawCovs,is.factor)))){
-        tempCovs[[i]] <- factor(tempCovs[[i]],levels=levels(rawCovs[,i]))
-        tmpcovs[i] <- as.character(tmpcovs[[i]])
-      }
-      for(i in which(!unlist(lapply(rawCovs,is.factor)))){
-        tmpcovs[i]<-round(covs[names(rawCovs)][i],2)
-      }
-      if(!is.null(recharge)){
-        tmprecovs<-covs[names(m$reCovs)]
-        for(i in which(unlist(lapply(m$reCovs,is.factor)))){
-          tmprecovs[i] <- as.character(tmprecovs[[i]])
-        }
-        for(i in which(!unlist(lapply(m$reCovs,is.factor)))){
-          tmprecovs[i]<-round(recovs[names(m$reCovs)][i],2)
-        }
-      }
-      
-      if(inherits(m$data,"hierarchical")) class(tempCovs) <- append("hierarchical",class(tempCovs))
-      
-      tmpSplineInputs<-getSplineFormula(newformula,m$data,tempCovs)
-      desMat <- stats::model.matrix(tmpSplineInputs$formula,data=tmpSplineInputs$covs)
-      
-      for(mix in 1:mixtures){
-        
-        if(is.null(recharge)){
-          trMat <- trMatrix_rcpp(nbStates,beta$beta[(mix-1)*(nbCovs+1)+1:(nbCovs+1),,drop=FALSE],desMat,m$conditions$betaRef)
-        } else {
-          trMat <- array(unlist(lapply(split(tmpSplineInputs$covs,1:nrow(desMat)),function(x) tryCatch(get_gamma_recharge(m$mod$estimate[c(gamInd[unique(c(m$conditions$betaCons))],length(m$mod$estimate)-nbRecovs:0)],covs=x,formula=tmpSplineInputs$formula,hierRecharge=hierRecharge,nbStates=nbStates,betaRef=m$conditions$betaRef,betaCons=m$conditions$betaCons,workBounds=rbind(m$conditions$workBounds$beta,m$conditions$workBounds$theta),mixture = mix),error=function(e) NA))),dim=c(nbStates,nbStates,nrow(desMat)))
-        }
-        
-        if(!inherits(m,"hierarchical")){
-          
-          plotTPM(nbStates,cov,ref=1:nbStates,tempCovs,trMat,rawCovs,lwd,arg,plotCI,Sigma,gamInd,m,desMat,nbRecovs,tmpSplineInputs$formula,hierRecharge,mix,muffWarn,quantSup,tmpSplineInputs$covs,stateNames=1:nbStates)
-          
-          txt <- paste(names(rawCovs)[-cov],"=",tmpcovs[-cov],collapse=", ")
-          if(nbRecovs & names(rawCovs)[cov]=="recharge"){
-            tmpNames <- c(names(rawCovs)[-cov],colnames(m$reCovs))
-            txt <- paste(tmpNames[!duplicated(tmpNames)],"=",c(tmpcovs[-cov],tmprecovs)[!duplicated(tmpNames)],collapse=", ")
-          }
-          if(ncol(rawCovs)>1 | nbRecovs) do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities",ifelse(nbRecovs," at next time step: ",": "),txt),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-          else do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities"),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-          
-        } else {
-          for(j in 1:(m$conditions$hierStates$height-1)){
-            
-            txt <- paste(names(rawCovs)[-cov][which(names(rawCovs)[-cov]!="level")],"=",tmpcovs[which(tmpcovs$level==j),-cov][which(names(rawCovs)[-cov]!="level")],collapse=", ")
-            if(nbRecovs & grepl("recharge",names(rawCovs)[cov])){
-              tmpNames <- c(names(rawCovs)[-cov][which(names(rawCovs)[-cov]!="level" & !grepl("recharge",names(rawCovs)[-cov]))],colnames(m$reCovs)[which(colnames(m$reCovs)!="level" & !grepl("recharge",colnames(m$reCovs)))])
-              tmprecovs <- tmprecovs[,which(colnames(tmprecovs)!="level" & !grepl("recharge",colnames(tmprecovs))),drop=FALSE]
-              txt <- paste(tmpNames[!duplicated(tmpNames)],"=",c(tmpcovs[which(tmpcovs$level==j),-cov][which(names(rawCovs)[-cov]!="level" & !grepl("recharge",names(rawCovs)[-cov]))],tmprecovs)[!duplicated(tmpNames)],collapse=", ")
-            }
-            
-            if(j==1) {
-              
-              ref <- m$conditions$hierStates$Get(function(x) Aggregate(x,"state",min),filterFun=function(x) x$level==j+1)
-              
-              # only plot if there is variation in stationary state proabilities
-              if(!all(apply(trMat[ref,ref,which(tempCovs$level==j)],1:2,function(x) all( abs(x - mean(x)) < 1.e-6 )))){
-                
-                plotTPM(nbStates,cov,ref,tempCovs[which(tempCovs$level==j),],trMat[,,which(tempCovs$level==j)],rawCovs,lwd,arg,plotCI,Sigma,gamInd,m,desMat[which(tempCovs$level==j),],nbRecovs,tmpSplineInputs$formula,hierRecharge,mix,muffWarn,quantSup,tmpSplineInputs$covs[which(tempCovs$level==j),],stateNames=names(ref))
-                
-                if(ncol(rawCovs[-cov])>1 | nbRecovs) do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities for level",j,ifelse(nbRecovs," at next time step: ",": "),txt),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-                else do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities for level",j),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-                
-                #if(length(covnames[-cov])>1) do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," s"),"S"),"tationary state probabilities for level",j,": ",paste(covnames[-cov][which(covnames[-cov]!="level")]," = ",tmpcovs[which(tmpcovs$level==j),-cov][which(covnames[-cov]!="level")],collapse=", ")),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-                #else do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," s"),"S"),"tationary state probabilities for level",j),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-              } 
-            } else {
-              t <- data.tree::Traverse(m$conditions$hierStates,filterFun=function(x) x$level==j)
-              names(t) <- m$conditions$hierStates$Get("name",filterFun=function(x) x$level==j)
-              for(k in names(t)){
-                ref <- t[[k]]$Get(function(x) Aggregate(x,"state",min),filterFun=function(x) x$level==j+1)#t[[k]]$Get("state",filterFun = data.tree::isLeaf)
-                # only plot if jth node has children and there is variation in stationary state proabilities
-                if(!is.null(ref) && !all(apply(trMat[ref,ref,which(tempCovs$level==j)],1:2,function(x) all( abs(x - mean(x)) < 1.e-6 )))){
-                  
-                  plotTPM(nbStates,cov,ref,tempCovs[which(tempCovs$level==j),],trMat[,,which(tempCovs$level==j)],rawCovs,lwd,arg,plotCI,Sigma,gamInd,m,desMat[which(tempCovs$level==j),],nbRecovs,tmpSplineInputs$formula,hierRecharge,mix,muffWarn,quantSup,tmpSplineInputs$covs[which(tempCovs$level==j),],stateNames=names(ref))
-                  
-                  if(ncol(rawCovs[-cov])>1 | nbRecovs) do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities for level",j," ",k,ifelse(nbRecovs," at next time step: ",": "),txt),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-                  else do.call(mtext,c(list(paste0(ifelse(mixtures>1,paste0("Mixture ",mix," t"),"T"),"ransition probabilities for level",j," ",k),side=3,outer=TRUE,padj=2,cex=cex.main),marg))
-                  
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+ggplot(TP1) +
+  geom_line(aes(x = WC.cov, y = TP1_1)) +
+  geom_line(aes(x = WC.cov, y = TP1_2)) +
+  geom_line(aes(x = WC.cov, y = TP1_3))
+
+# 2->?
+TP2_1 <- data.frame(Intercept = TPbetas[3,1],
+                    WC.coef = TPbetas[3,2],
+                    SD.coef = TPbetas[3,3],
+                    Cos.coef = TPbetas[3,4],
+                    Sin.coef = TPbetas[3,5],
+                    hour = 11.54,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+) %>%
+  mutate(TP2_1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP2_1_exp = exp(TP2_1_reg)) %>%
+  select(WC.cov, TP2_1_reg, TP2_1_exp)
+TP2_3 <- data.frame(Intercept = TPbetas[4,1],
+                    WC.coef = TPbetas[4,2],
+                    SD.coef = TPbetas[4,3],
+                    Cos.coef = TPbetas[4,4],
+                    Sin.coef = TPbetas[4,5],
+                    hour = 11.54,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+) %>%
+  mutate(TP2_3_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP2_3_exp = exp(TP2_3_reg)) %>%
+  select(TP2_3_reg, TP2_3_exp)
+TP2 <- cbind(TP2_1, TP2_3) %>%
+  mutate(TP2_1 = TP2_1_exp/(1+TP2_1_exp+TP2_3_exp)) %>%
+  mutate(TP2_3 = TP2_3_exp/(1+TP2_1_exp+TP2_3_exp)) %>%
+  mutate(TP2_2 = 1-TP2_3-TP2_1)
+
+ggplot(TP2) +
+  geom_line(aes(x = WC.cov, y = TP2_2)) +
+  geom_line(aes(x = WC.cov, y = TP2_1)) +
+  geom_line(aes(x = WC.cov, y = TP2_3))
+
+# 3->?
+TP3_1 <- data.frame(Intercept = TPbetas[5,1],
+                    WC.coef = TPbetas[5,2],
+                    SD.coef = TPbetas[5,3],
+                    Cos.coef = TPbetas[5,4],
+                    Sin.coef = TPbetas[5,5],
+                    hour = 11.54,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+) %>%
+  mutate(TP3_1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP3_1_exp = exp(TP3_1_reg)) %>%
+  select(WC.cov, TP3_1_reg, TP3_1_exp)
+TP3_2 <- data.frame(Intercept = TPbetas[6,1],
+                    WC.coef = TPbetas[6,2],
+                    SD.coef = TPbetas[6,3],
+                    Cos.coef = TPbetas[6,4],
+                    Sin.coef = TPbetas[6,5],
+                    hour = 11.54,
+                    SD.cov = 0,
+                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
+) %>%
+  mutate(TP3_2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
+  mutate(TP3_2_exp = exp(TP3_2_reg)) %>%
+  select(TP3_2_reg, TP3_2_exp)
+TP3 <- cbind(TP3_1, TP3_2) %>%
+  mutate(TP3_1 = TP3_1_exp/(1+TP3_1_exp+TP3_2_exp)) %>%
+  mutate(TP3_2 = TP3_2_exp/(1+TP3_1_exp+TP3_2_exp)) %>%
+  mutate(TP3_3 = 1-TP3_2-TP3_1)
+
+ggplot(TP3) +
+  geom_line(aes(x = WC.cov, y = TP3_3)) +
+  geom_line(aes(x = WC.cov, y = TP3_1)) +
+  geom_line(aes(x = WC.cov, y = TP3_2))
 
 
 
@@ -286,3 +244,85 @@ ggplot(Mdata, aes(x = step, y = angle)) +
 ggplot(TPdata, aes(x = log(step), group = State)) +
   geom_density(aes(color = State, fill = State), alpha = .4) +
   theme_classic() 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Checkout Leaflet
+###########################################################################
+########################
+### CHECKING OUTPUTS ###
+########################
+# #Where are the cases localized temporally?
+# state_times <- turkey_states %>%
+#   mutate(State = as.factor(State)) %>%
+#   group_by(State, hour) %>%
+#   summarize(Total = n())
+# 
+# require(tidyr)
+# state_days <- turkey_states %>%
+#   mutate(State = as.factor(State)) %>%
+#   group_by(ID, YDay, State) %>%
+#   summarize(Total = n()) %>%
+#   group_by(YDay, State) %>%
+#   summarize(Avg = mean(Total)) %>%
+#   ungroup() %>%
+#   pivot_wider(names_from = "State", values_from = "Avg") %>%
+#   rename(Roosting = `1`, Loafing = `2`, Foraging = `3`) %>%
+#   mutate(Ratio = Loafing/Foraging)%>%
+#   mutate(L_propday = Loafing/(24-Roosting))%>%
+#   mutate(F_propday = Foraging/(24-Roosting))
+# 
+# 
+# ggplot(data = state_times, aes(x = hour, y = Total, group = as.factor(State))) +
+#   geom_point(aes(shape = State, color = as.factor(State), size = 3))
+# 
+# ggplot(data = state_days, aes(x = YDay)) +
+#   geom_point(aes(y = L_propday, shape = '21', size = 3)) +
+#   geom_point(aes(y = F_propday, shape = '25', size = 3)) +
+#   xlim(0,100)
+
+
+# turkey_states1 <- turkey_states %>%
+#   mutate(Date = as.Date(Timestamp)) %>%
+#   #filter(hour(Timestamp) %in% ) #Maybe consider filtering out nightime hours but will need to use suncalc
+#   group_by(ID, Date) %>%
+#   summarize(State_Day_Avg = mean(State))
+# 
+# DailyStates <- ggplot(data=turkey_states1, aes(x = Date, y=State_Day_Avg)) +
+#   geom_point(size = 1.5) +
+#   xlab("Date") +
+#   ylab("Daily Average State") +
+#   theme_grey(base_size = 18) +
+#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1) + #best fit line
+#   theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
+#   theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)))
+# DailyStates
+# 
+# id_list = unique(turkey_states$ID)
+# id = id_list[3]
+# states_onebird <- turkey_states1 %>% filter( ID == id)
+# graph_onebird <- ggplot(data = states_onebird, aes(x = Date, y = State_Day_Avg)) +
+#   geom_point(size = 1.5) +
+#   labs(x = "Date", y = "State", title = id) +
+#   theme_grey(base_size = 18) +
+#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1)  #best fit line
+# graph_onebird  
+
+
+#Need to figure out a way to get the State values onto the points
+#Need to figure out a way to incorproate individual variation into transition/mean etc.
+#induce some sort of variation in the crawl wrap
