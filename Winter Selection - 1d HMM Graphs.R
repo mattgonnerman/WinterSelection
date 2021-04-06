@@ -25,45 +25,69 @@ states <- viterbi(m)
 #######################################
 ## Plot the Step Length Density/Hist ##
 #######################################
-turkey_states <- turkey_states %>%
-  filter(!is.na(location_lat)) %>%
-  mutate(State = ifelse(State == 1, "Roosting", 
-                 ifelse(State == 2, "Stationary",
-                 ifelse(State == 3, "Mobile", NA)))) %>%
-  mutate(State = factor(State, levels = c("Roosting", "Stationary", "Mobile"))) 
+m <- hmm.top.model
+# Estimated step length parameters
+stepMean <- m$mle$step["mean",]
+stepSD <- m$mle$step["sd",]
 
+# Estimated turning angle parameters
+angleMean <- m$mle$angle["mean",]
+angleCon <- m$mle$angle["concentration",]
 
-ggplot(turkey_states, aes(x = step, group = State)) +
-  geom_density(aes(color = State, fill = State), alpha = .7, size = 1.2) +
+#Derive Shape and Rate Parameters of Gamma
+stepShape <- stepMean^2/stepSD^2
+stepRate <- stepMean/stepSD^2
+
+gamma.data <- data.frame(
+  Roosting = dgamma(seq(1, 1000, .1), shape = stepShape[1], scale = 1/stepRate[1]),
+  Stationary = dgamma(seq(1, 1000, .1), shape = stepShape[2], scale = 1/stepRate[2]),
+  Mobile = dgamma(seq(1, 1000, .1), shape = stepShape[3], scale = 1/stepRate[3]),
+  X = seq(1, 1000, .1)
+)
+
+ggplot(gamma.data, aes(x = X)) +
+  geom_line(aes(y = Roosting, color = "#1cade4"), size = 2) +
+  geom_line(aes(y = Stationary, color = "#f1a806"), size = 2) +
+  geom_line(aes(y = Mobile, color = "#46e300"), size = 2) +
+  geom_vline(aes(xintercept = stepMean[1]), color = "#1cade4", size = 1, linetype = "dashed") +
+  geom_vline(aes(xintercept = stepMean[2]), color = "#f1a806", size = 1, linetype = "dashed") +
+  geom_vline(aes(xintercept = stepMean[3]), color = "#46e300", size = 1, linetype = "dashed") +
+  scale_y_continuous(limits=c(0,.05)) + 
+  scale_x_continuous(limits=c(0,200)) +
   theme_classic(base_size = 25) +
-  scale_y_continuous(limits=c(0,.04), oob = scales::squish) + 
-  scale_x_continuous(limits=c(0,500)) +
-  scale_color_manual(name = "Behavioral\nState",
-                      # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("#1cade4", "#f1a806", "#46e300")) +
-  scale_fill_manual(name = "Behavioral\nState",
-                      # labels = c("Roost", "Stationary", "Mobile"),
-                      values = c("#1cade4", "#f1a806", "#46e300")) + 
-  theme(legend.position = c(0.77, 0.77)) +
   xlab("Step Length") +
-  ylab("Density")
-ggsave("Results/StepLengthDensity.jpeg", width = 7, height = 7, units = "in")
+  ylab("Density") +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend") + 
+  theme(legend.position = c(0.85, 0.8)) 
+ggsave("Results/StepLengthDensity.png", width = 9, height = 7, units = "in")
 
-ggplot(turkey_states, aes(x = angle, group = State)) +
-  geom_density(aes(color = State), alpha = .7, size = 1.2) +
-  theme_classic(base_size = 25) +
-  # scale_y_continuous(limits=c(0,.04), oob = scales::squish) + 
+require(circular)
+wrpcauchy.data <- data.frame(
+  Roosting = dwrappedcauchy(seq(-pi, pi, .01), mu = angleMean[1], rho = angleCon[1]),
+  Stationary = dwrappedcauchy(seq(-pi, pi, .01), mu = angleMean[2], rho = angleCon[2]),
+  Mobile = dwrappedcauchy(seq(-pi, pi, .01), mu = angleMean[3], rho = angleCon[3]),
+  X = seq(-pi, pi, .01)
+)
+
+ggplot(wrpcauchy.data, aes(x = X)) +
+  geom_line(aes(y = Roosting, color = "#1cade4"), size = 2) +
+  geom_line(aes(y = Stationary, color = "#f1a806"), size = 2) +
+  geom_line(aes(y = Mobile, color = "#46e300"), size = 2) +
+  scale_y_continuous(limits=c(0,.3)) + 
   scale_x_continuous(limits=c(-pi,pi)) +
-  scale_color_manual(name = "Behavioral\nState",
-                     # labels = c("Roost", "Stationary", "Mobile"),
-                     values = c("#f1a806", "#46e300")) +
-  scale_fill_manual(name = "Behavioral\nState",
-                    # labels = c("Roost", "Stationary", "Mobile"),
-                    values = c("#f1a806", "#46e300")) + 
-  theme(legend.position = c(0.5, 0.3)) +
-  xlab("Turning Angle") +
-  ylab("Density")
-ggsave("Results/TurningAngleDensity.jpeg", width = 7, height = 7, units = "in")
+  theme_classic(base_size = 25) +
+  xlab("Step Length") +
+  ylab("Density") +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend") + 
+  theme(legend.position = c(0.85, 0.8)) 
+
+ggsave("Results/TurningAngleDensity.png", width = 7, height = 7, units = "in")
 
 
 ##################################################
@@ -74,255 +98,258 @@ TPbetas <- read.csv('Results/HMM - MLE of betas.csv')
 row.names(TPbetas) <- TPbetas$X
 TPbetas <- TPbetas %>% select(-X)
 TPbetas <- as.data.frame(t(TPbetas)) %>%
-  dplyr::select('(Intercept)', WC.Z, SD.Z, 'cosinorCos(hour, period = 24)', 'cosinorSin(hour, period = 24)') %>%
+  dplyr::select(Intercept.coef = '(Intercept)', WC.coef = WC.Z, 
+                SD.coef = SD.Z, Cos.coef = 'cosinorCos(hour, period = 24)', Sin.coef = 'cosinorSin(hour, period = 24)') %>%
+  mutate(Start_State = c(1,1,2,2,3,3) ) %>%
+  mutate(End_State = c(2,3,1,3,1,2) )
+TPLCL <- as.data.frame(t(hmm.top.model$CIbeta$beta$lower)) %>%
+  dplyr::select(Intercept.coef = '(Intercept)', WC.coef = WC.Z, 
+                SD.coef = SD.Z, Cos.coef = 'cosinorCos(hour, period = 24)', Sin.coef = 'cosinorSin(hour, period = 24)') %>%
+  mutate(Start_State = c(1,1,2,2,3,3) ) %>%
+  mutate(End_State = c(2,3,1,3,1,2) )
+TPUCL <- as.data.frame(t(hmm.top.model$CIbeta$beta$upper)) %>%
+  dplyr::select(Intercept.coef = '(Intercept)', WC.coef = WC.Z, 
+                SD.coef = SD.Z, Cos.coef = 'cosinorCos(hour, period = 24)', Sin.coef = 'cosinorSin(hour, period = 24)') %>%
   mutate(Start_State = c(1,1,2,2,3,3) ) %>%
   mutate(End_State = c(2,3,1,3,1,2) )
 
-###Wind Chill
-for(i in 1:nrow(TPbetas)){
-  # 1->?
-  TP1 <- data.frame(Intercept = TPbetas[i,1],
-                      WC.coef = TPbetas[i,2],
-                      SD.coef = TPbetas[i,3],
-                      Cos.coef = TPbetas[i,4],
-                      Sin.coef = TPbetas[i,5],
-                      hour = 9,
-                      SD.cov = 0,
-                      WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-  ) %>%
-    mutate(TP1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-    mutate(TP1_exp = exp(TP1_reg)) %>%
-    select(WC.cov, TP1_reg, TP1_exp)
-  TP2 <- data.frame(Intercept = TPbetas[i,1],
-                      WC.coef = TPbetas[i,2],
-                      SD.coef = TPbetas[i,3],
-                      Cos.coef = TPbetas[i],4],
-                      Sin.coef = TPbetas[i,5],
-                      hour = 9,
-                      SD.cov = 0,
-                      WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-  ) %>%
-    mutate(TP2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-    mutate(TP2_exp = exp(TP2_reg)) %>%
-    select(TP2_reg, TP2_exp)
-  TP <- cbind(TP1, TP2) %>%
-    mutate(TP1_2 = TP1_2_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
-    mutate(TP1_3 = TP1_3_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
-    mutate(TP1_1 = 1-TP1_3-TP1_2)
-}
+TPdata <- expand.grid(
+            WC.cov = c(0,seq(min(m$data$WC.Z), max(m$data$WC.Z), .1)),
+            SD.cov = c(0,seq(min(m$data$SD.Z), max(m$data$SD.Z), .1)),
+            Hour.cov = c(5, 12, 15, 19),
+            Start_State = 1:3,
+            End_State = 1:3) %>%
+  filter(Start_State != End_State)
+TP.full <- merge(TPdata, TPbetas, by = c("Start_State", "End_State"), all.x = T) %>%
+  mutate(TP_reg = Intercept.coef + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*Hour.cov/24) + Sin.coef*sin(2*pi*Hour.cov/24)) %>%
+  mutate(TP_exp = exp(TP_reg))
+TP.full.LCL <- merge(TPdata, TPLCL, by = c("Start_State", "End_State"), all.x = T) %>%
+  mutate(TP_reg = Intercept.coef + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*Hour.cov/24) + Sin.coef*sin(2*pi*Hour.cov/24)) %>%
+  mutate(TP_exp = exp(TP_reg))
+TP.full.UCL <- merge(TPdata, TPUCL, by = c("Start_State", "End_State"), all.x = T) %>%
+  mutate(TP_reg = Intercept.coef + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*Hour.cov/24) + Sin.coef*sin(2*pi*Hour.cov/24)) %>%
+  mutate(TP_exp = exp(TP_reg))
 
-# 1->?
-TP1_2 <- data.frame(Intercept = TPbetas[1,1],
-                    WC.coef = TPbetas[1,2],
-                    SD.coef = TPbetas[1,3],
-                    Cos.coef = TPbetas[1,4],
-                    Sin.coef = TPbetas[1,5],
-                    hour = 9,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-                    ) %>%
-  mutate(TP1_2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP1_2_exp = exp(TP1_2_reg)) %>%
-  select(WC.cov, TP1_2_reg, TP1_2_exp)
-TP1_3 <- data.frame(Intercept = TPbetas[2,1],
-                    WC.coef = TPbetas[2,2],
-                    SD.coef = TPbetas[2,3],
-                    Cos.coef = TPbetas[2,4],
-                    Sin.coef = TPbetas[2,5],
-                    hour = 9,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-) %>%
-  mutate(TP1_3_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP1_3_exp = exp(TP1_3_reg)) %>%
-  select(TP1_3_reg, TP1_3_exp)
-TP1 <- cbind(TP1_2, TP1_3) %>%
-  mutate(TP1_2 = TP1_2_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
-  mutate(TP1_3 = TP1_3_exp/(1+TP1_2_exp+TP1_3_exp)) %>%
-  mutate(TP1_1 = 1-TP1_3-TP1_2)
+TP1 <- TP.full %>%
+  filter(Start_State == 1) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp12 = '1_2', exp13 = '1_3') %>%
+  mutate(TP1_2 = exp12/(1+exp12+exp13))%>%
+  mutate(TP1_3 = exp13/(1+exp12+exp13))%>%
+  mutate(TP1_1 = 1 - TP1_2 - TP1_3)
 
-ggplot(TP1) +
-  geom_line(aes(x = WC.cov, y = TP1_1)) +
-  geom_line(aes(x = WC.cov, y = TP1_2)) +
-  geom_line(aes(x = WC.cov, y = TP1_3))
+TP2 <- TP.full %>%
+  filter(Start_State == 2) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp21 = '2_1', exp23 = '2_3') %>%
+  mutate(TP2_1 = exp21/(1+exp21+exp23))%>%
+  mutate(TP2_3 = exp23/(1+exp21+exp23))%>%
+  mutate(TP2_2 = 1 - TP2_1 - TP2_3)
 
-# 2->?
-TP2_1 <- data.frame(Intercept = TPbetas[3,1],
-                    WC.coef = TPbetas[3,2],
-                    SD.coef = TPbetas[3,3],
-                    Cos.coef = TPbetas[3,4],
-                    Sin.coef = TPbetas[3,5],
-                    hour = 11.54,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-) %>%
-  mutate(TP2_1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP2_1_exp = exp(TP2_1_reg)) %>%
-  select(WC.cov, TP2_1_reg, TP2_1_exp)
-TP2_3 <- data.frame(Intercept = TPbetas[4,1],
-                    WC.coef = TPbetas[4,2],
-                    SD.coef = TPbetas[4,3],
-                    Cos.coef = TPbetas[4,4],
-                    Sin.coef = TPbetas[4,5],
-                    hour = 11.54,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-) %>%
-  mutate(TP2_3_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP2_3_exp = exp(TP2_3_reg)) %>%
-  select(TP2_3_reg, TP2_3_exp)
-TP2 <- cbind(TP2_1, TP2_3) %>%
-  mutate(TP2_1 = TP2_1_exp/(1+TP2_1_exp+TP2_3_exp)) %>%
-  mutate(TP2_3 = TP2_3_exp/(1+TP2_1_exp+TP2_3_exp)) %>%
-  mutate(TP2_2 = 1-TP2_3-TP2_1)
+TP3 <- TP.full %>%
+  filter(Start_State == 3) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp31 = '3_1', exp32 = '3_2') %>%
+  mutate(TP3_1 = exp31/(1+exp31+exp32))%>%
+  mutate(TP3_2 = exp32/(1+exp31+exp32))%>%
+  mutate(TP3_3 = 1 - TP3_1 - TP3_2)
 
-ggplot(TP2) +
-  geom_line(aes(x = WC.cov, y = TP2_2)) +
-  geom_line(aes(x = WC.cov, y = TP2_1)) +
-  geom_line(aes(x = WC.cov, y = TP2_3))
+TP1.lcl <- TP.full.LCL %>%
+  filter(Start_State == 1) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp12 = '1_2', exp13 = '1_3') %>%
+  mutate(TP1_2 = exp12/(1+exp12+exp13))%>%
+  mutate(TP1_3 = exp13/(1+exp12+exp13))%>%
+  mutate(TP1_1 = 1 - TP1_2 - TP1_3)
 
-# 3->?
-TP3_1 <- data.frame(Intercept = TPbetas[5,1],
-                    WC.coef = TPbetas[5,2],
-                    SD.coef = TPbetas[5,3],
-                    Cos.coef = TPbetas[5,4],
-                    Sin.coef = TPbetas[5,5],
-                    hour = 11.54,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-) %>%
-  mutate(TP3_1_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP3_1_exp = exp(TP3_1_reg)) %>%
-  select(WC.cov, TP3_1_reg, TP3_1_exp)
-TP3_2 <- data.frame(Intercept = TPbetas[6,1],
-                    WC.coef = TPbetas[6,2],
-                    SD.coef = TPbetas[6,3],
-                    Cos.coef = TPbetas[6,4],
-                    Sin.coef = TPbetas[6,5],
-                    hour = 11.54,
-                    SD.cov = 0,
-                    WC.cov = seq(min(hmm.top.model$data$WC.Z),max(hmm.top.model$data$WC.Z), .1)
-) %>%
-  mutate(TP3_2_reg = Intercept + WC.coef*WC.cov + SD.coef*SD.cov + Cos.coef*cos(2*pi*hour/24) + Sin.coef*sin(2*pi*hour/24)) %>%
-  mutate(TP3_2_exp = exp(TP3_2_reg)) %>%
-  select(TP3_2_reg, TP3_2_exp)
-TP3 <- cbind(TP3_1, TP3_2) %>%
-  mutate(TP3_1 = TP3_1_exp/(1+TP3_1_exp+TP3_2_exp)) %>%
-  mutate(TP3_2 = TP3_2_exp/(1+TP3_1_exp+TP3_2_exp)) %>%
-  mutate(TP3_3 = 1-TP3_2-TP3_1)
+TP2.lcl <- TP.full.LCL %>%
+  filter(Start_State == 2) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp21 = '2_1', exp23 = '2_3') %>%
+  mutate(TP2_1 = exp21/(1+exp21+exp23))%>%
+  mutate(TP2_3 = exp23/(1+exp21+exp23))%>%
+  mutate(TP2_2 = 1 - TP2_1 - TP2_3)
 
-ggplot(TP3) +
-  geom_line(aes(x = WC.cov, y = TP3_3)) +
-  geom_line(aes(x = WC.cov, y = TP3_1)) +
-  geom_line(aes(x = WC.cov, y = TP3_2))
+TP3.lcl <- TP.full.LCL %>%
+  filter(Start_State == 3) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp31 = '3_1', exp32 = '3_2') %>%
+  mutate(TP3_1 = exp31/(1+exp31+exp32))%>%
+  mutate(TP3_2 = exp32/(1+exp31+exp32))%>%
+  mutate(TP3_3 = 1 - TP3_1 - TP3_2)
 
+TP1.ucl <- TP.full.UCL %>%
+  filter(Start_State == 1) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp12 = '1_2', exp13 = '1_3') %>%
+  mutate(TP1_2 = exp12/(1+exp12+exp13))%>%
+  mutate(TP1_3 = exp13/(1+exp12+exp13))%>%
+  mutate(TP1_1 = 1 - TP1_2 - TP1_3)
 
+TP2.ucl <- TP.full.UCL %>%
+  filter(Start_State == 2) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp21 = '2_1', exp23 = '2_3') %>%
+  mutate(TP2_1 = exp21/(1+exp21+exp23))%>%
+  mutate(TP2_3 = exp23/(1+exp21+exp23))%>%
+  mutate(TP2_2 = 1 - TP2_1 - TP2_3)
 
-#####################################################
-###Trying to think of cool ways to visualize data ###
-#####################################################
-#Weather Data
-TPdata <- read.csv("Results/HMMBehavioralStates_output.csv") %>%
-  dplyr::select(ID, Timestamp, step, angle, WC.Z, SD.Z, hour, State) %>%
-  mutate(State = as.factor(State))
+TP3.ucl <- TP.full.UCL %>%
+  filter(Start_State == 3) %>%
+  select(Start_State, End_State, WC.cov, SD.cov, Hour.cov, Start_State, TP_exp) %>%
+  pivot_wider(names_from = c(Start_State, End_State), values_from = TP_exp) %>%
+  rename(exp31 = '3_1', exp32 = '3_2') %>%
+  mutate(TP3_1 = exp31/(1+exp31+exp32))%>%
+  mutate(TP3_2 = exp32/(1+exp31+exp32))%>%
+  mutate(TP3_3 = 1 - TP3_1 - TP3_2)
 
-Sdata <- TPdata %>% filter(State == 2)
-Mdata <- TPdata %>% filter(State == 3)
+TP1.CL <- merge(TP1.lcl, TP1.ucl, by = c("WC.cov", "SD.cov", "Hour.cov"))
+TP2.CL <- merge(TP2.lcl, TP2.ucl, by = c("WC.cov", "SD.cov", "Hour.cov"))
+TP3.CL <- merge(TP3.lcl, TP3.ucl, by = c("WC.cov", "SD.cov", "Hour.cov"))
 
-ggplot(Sdata, aes(x = step, y = angle)) +
-  geom_hex(bins = 50) +
-  scale_fill_viridis_c(option = "magma") +
-  theme_classic()
+### Make Plots and then format as grid using cowplot
+## 2 --> ? | Wind Chill
+TP2.WC <- TP2 %>%
+  filter(SD.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+TP2.WC.CL <- TP2.CL %>%
+  filter(SD.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+WC2 <- ggplot(TP2.WC, aes(x = WC.cov)) +
+  geom_line(aes(y = TP2_1, color = "#1cade4", linetype = "longdash"), size = 3) +
+  geom_line(aes(y = TP2_2, color = "#f1a806", linetype = "solid"), size = 3) +
+  geom_line(aes(y = TP2_3, color = "#46e300", linetype = "twodash"), size = 3) +
+  geom_ribbon(data = TP2.WC.CL, aes(ymin = TP2_1.x, ymax = TP2_1.y),alpha = .3, fill = "#1cade4") +
+  geom_ribbon(data = TP2.WC.CL, aes(ymin = TP2_2.x, ymax = TP2_2.y),alpha = .3, fill = "#f1a806") +
+  geom_ribbon(data = TP2.WC.CL, aes(ymin = TP2_3.x, ymax = TP2_3.y),alpha = .3, fill = "#46e300") +
+  theme_classic(base_size = 50) +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend")  +
+  scale_linetype_identity(name = "Behavioral\nState",
+                          breaks = c("longdash", "solid", "twodash"),
+                          labels = c("Roosting", "Stationary", "Mobile"),
+                          guide = "legend") +
+  xlab(element_blank()) +
+  ylab(paste("P(Stationary ", sprintf("\u2192"), " X)"))
 
-ggplot(Mdata, aes(x = step, y = angle)) +
-  geom_hex(bins = 50) +
-  scale_fill_viridis_c(option = "magma") +
-  theme_classic() + 
-  xlim(0, 1000)
+## 3 --> ? | Wind Chill
+TP3.WC <- TP3 %>%
+  filter(SD.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+TP3.WC.CL <- TP3.CL %>%
+  filter(SD.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+WC3 <- ggplot(TP3.WC, aes(x = WC.cov)) +
+  geom_line(aes(y = TP3_1, color = "#1cade4", linetype = "longdash"), size = 3) +
+  geom_line(aes(y = TP3_2, color = "#f1a806", linetype = "solid"), size = 3) +
+  geom_line(aes(y = TP3_3, color = "#46e300", linetype = "twodash"), size = 3) +
+  geom_ribbon(data = TP3.WC.CL, aes(ymin = TP3_1.x, ymax = TP3_1.y),alpha = .3, fill = "#1cade4") +
+  geom_ribbon(data = TP3.WC.CL, aes(ymin = TP3_2.x, ymax = TP3_2.y),alpha = .3, fill = "#f1a806") +
+  geom_ribbon(data = TP3.WC.CL, aes(ymin = TP3_3.x, ymax = TP3_3.y),alpha = .3, fill = "#46e300") +
+  theme_classic(base_size = 50) +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend")  +
+  scale_linetype_identity(name = "Behavioral\nState",
+                          breaks = c("longdash", "solid", "twodash"),
+                          labels = c("Roosting", "Stationary", "Mobile"),
+                          guide = "legend") +
+  xlab("Wind Chill") +
+  ylab(paste("P(Mobile ", sprintf("\u2192"), " X)"))
 
+## 2 --> ? | Snow Depth
+TP2.SD <- TP2 %>%
+  filter(WC.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+TP2.SD.CL <- TP2.CL %>%
+  filter(WC.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+SD2 <- ggplot(TP2.SD, aes(x = SD.cov)) +
+  geom_line(aes(y = TP2_1, color = "#1cade4", linetype = "longdash"), size = 3) +
+  geom_line(aes(y = TP2_2, color = "#f1a806", linetype = "solid"), size = 3) +
+  geom_line(aes(y = TP2_3, color = "#46e300", linetype = "twodash"), size = 3) +
+  geom_ribbon(data = TP2.SD.CL, aes(ymin = TP2_1.x, ymax = TP2_1.y),alpha = .3, fill = "#1cade4") +
+  geom_ribbon(data = TP2.SD.CL, aes(ymin = TP2_2.x, ymax = TP2_2.y),alpha = .3, fill = "#f1a806") +
+  geom_ribbon(data = TP2.SD.CL, aes(ymin = TP2_3.x, ymax = TP2_3.y),alpha = .3, fill = "#46e300") +
+  theme_classic(base_size = 50) +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend")  +
+  scale_linetype_identity(name = "Behavioral\nState",
+                          breaks = c("longdash", "solid", "twodash"),
+                          labels = c("Roosting", "Stationary", "Mobile"),
+                          guide = "legend") +
+  xlab(element_blank()) +
+  ylab(element_blank())
 
-ggplot(TPdata, aes(x = log(step), group = State)) +
-  geom_density(aes(color = State, fill = State), alpha = .4) +
-  theme_classic() 
+## 3 --> ? | Snow Depth
+TP3.SD <- TP3 %>%
+  filter(WC.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+TP3.SD.CL <- TP3.CL %>%
+  filter(WC.cov == 0) %>%
+  filter(Hour.cov == 12) %>%
+  mutate(Hour.cov = as.factor(Hour.cov))
+SD3 <- ggplot(TP3.SD, aes(x = SD.cov)) +
+  geom_line(aes(y = TP3_1, color = "#1cade4", linetype = "longdash"), size = 3) +
+  geom_line(aes(y = TP3_2, color = "#f1a806", linetype = "solid"), size = 3) +
+  geom_line(aes(y = TP3_3, color = "#46e300", linetype = "twodash"), size = 3) +
+  geom_ribbon(data = TP3.SD.CL, aes(ymin = TP3_1.x, ymax = TP3_1.y),alpha = .3, fill = "#1cade4") +
+  geom_ribbon(data = TP3.SD.CL, aes(ymin = TP3_2.x, ymax = TP3_2.y),alpha = .3, fill = "#f1a806") +
+  geom_ribbon(data = TP3.SD.CL, aes(ymin = TP3_3.x, ymax = TP3_3.y),alpha = .3, fill = "#46e300") +
+  theme_classic(base_size = 50) +
+  scale_color_identity(name = "Behavioral\nState",
+                       breaks = c("#1cade4", "#f1a806", "#46e300"),
+                       labels = c("Roosting", "Stationary", "Mobile"),
+                       guide = "legend")  +
+  scale_linetype_identity(name = "Behavioral\nState",
+                          breaks = c("longdash", "solid", "twodash"),
+                          labels = c("Roosting", "Stationary", "Mobile"),
+                          guide = "legend") +
+  xlab("Snow Depth") +
+  ylab(element_blank())
 
+#Grid Plot
+require(cowplot)
+legend <- get_legend(SD3 + theme(legend.title = element_blank() ,legend.position = "bottom", legend.key.width=unit(3,"inch")))
+WC2.graph <- WC2 + theme(legend.position = "none")
+WC3.graph <- WC3 + theme(legend.position = "none")
+SD2.graph <- SD2 + theme(legend.position = "none")
+SD3.graph <- SD3 + theme(legend.position = "none")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Checkout Leaflet
-###########################################################################
-########################
-### CHECKING OUTPUTS ###
-########################
-# #Where are the cases localized temporally?
-# state_times <- turkey_states %>%
-#   mutate(State = as.factor(State)) %>%
-#   group_by(State, hour) %>%
-#   summarize(Total = n())
-# 
-# require(tidyr)
-# state_days <- turkey_states %>%
-#   mutate(State = as.factor(State)) %>%
-#   group_by(ID, YDay, State) %>%
-#   summarize(Total = n()) %>%
-#   group_by(YDay, State) %>%
-#   summarize(Avg = mean(Total)) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = "State", values_from = "Avg") %>%
-#   rename(Roosting = `1`, Loafing = `2`, Foraging = `3`) %>%
-#   mutate(Ratio = Loafing/Foraging)%>%
-#   mutate(L_propday = Loafing/(24-Roosting))%>%
-#   mutate(F_propday = Foraging/(24-Roosting))
-# 
-# 
-# ggplot(data = state_times, aes(x = hour, y = Total, group = as.factor(State))) +
-#   geom_point(aes(shape = State, color = as.factor(State), size = 3))
-# 
-# ggplot(data = state_days, aes(x = YDay)) +
-#   geom_point(aes(y = L_propday, shape = '21', size = 3)) +
-#   geom_point(aes(y = F_propday, shape = '25', size = 3)) +
-#   xlim(0,100)
-
-
-# turkey_states1 <- turkey_states %>%
-#   mutate(Date = as.Date(Timestamp)) %>%
-#   #filter(hour(Timestamp) %in% ) #Maybe consider filtering out nightime hours but will need to use suncalc
-#   group_by(ID, Date) %>%
-#   summarize(State_Day_Avg = mean(State))
-# 
-# DailyStates <- ggplot(data=turkey_states1, aes(x = Date, y=State_Day_Avg)) +
-#   geom_point(size = 1.5) +
-#   xlab("Date") +
-#   ylab("Daily Average State") +
-#   theme_grey(base_size = 18) +
-#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1) + #best fit line
-#   theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0))) +
-#   theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)))
-# DailyStates
-# 
-# id_list = unique(turkey_states$ID)
-# id = id_list[3]
-# states_onebird <- turkey_states1 %>% filter( ID == id)
-# graph_onebird <- ggplot(data = states_onebird, aes(x = Date, y = State_Day_Avg)) +
-#   geom_point(size = 1.5) +
-#   labs(x = "Date", y = "State", title = id) +
-#   theme_grey(base_size = 18) +
-#   geom_smooth(method = "loess", span = .25, se=F, col = "red", lwd = 1)  #best fit line
-# graph_onebird  
+TP_grid <- plot_grid(plotlist = list(WC2.graph, SD2.graph,
+                                     WC3.graph, SD3.graph),
+                     nrow = 2,
+                     # labels = "auto",
+                     # label_size = 35,
+                     align = "hv",
+                     axis = "lb"
+)
 
 
-#Need to figure out a way to get the State values onto the points
-#Need to figure out a way to incorproate individual variation into transition/mean etc.
-#induce some sort of variation in the crawl wrap
+
+jpeg('Results/Transition Probability Grid.png', width = 2600, height = 1900)
+plot_grid(plotlist = list(TP_grid, legend),
+          nrow = 2, 
+          rel_heights = c(1,.1)
+)
+dev.off()
