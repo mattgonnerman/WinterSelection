@@ -48,7 +48,8 @@ for(i in 1:nrow(birdlist)){
   
   full_ind <- winterpoints_ind@data %>%  
     mutate(Time = hour(timestamp)) %>%
-    mutate(BirdID = BirdID)
+    mutate(BirdID = BirdID) %>%
+    mutate(timestamp = with_tz(timestamp, tzone = "America/New_York"))
   
   if(i==1){ #rbind ind bird data to create one large df
     full_all <- full_ind
@@ -64,7 +65,7 @@ hmm_data.raw <- read.csv("Results/HMMBehavioralStates_output.csv") %>%
   select(ID, Timestamp, State) %>%
   mutate(BirdID =  sub('^[^X]*X(\\d+).*', '\\1', ID)) %>%
   rename(timestamp = Timestamp) %>%
-  mutate(timestamp = as.POSIXct(timestamp, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"))
+  mutate(timestamp = as.POSIXct(timestamp, format = "%Y-%m-%d %H:%M:%S", tz = "EST"))
 
 #Merge by ID and nearest date/time
 require(data.table)

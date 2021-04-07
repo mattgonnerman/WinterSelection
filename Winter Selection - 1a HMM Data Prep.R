@@ -90,7 +90,9 @@ for(j in 1:nrow(roosts)){
   raw.move.df <- rbind(raw.move.df, working.df) #add to original database
 }
 
-raw.move.df <- raw.move.df %>% arrange(ID, Timestamp)
+require(lubridate)
+raw.move.df <- raw.move.df %>% arrange(ID, Timestamp) %>%
+  mutate(Timestamp = with_tz(Timestamp, tzone = "America/New_York"))
 
 #add a covariate for Ordinal Day
 raw.move.df$YDay <- yday(raw.move.df$Timestamp)
