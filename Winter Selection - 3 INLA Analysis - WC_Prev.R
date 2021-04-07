@@ -30,6 +30,11 @@ Stationary.final <- read.csv("Stationaryfinal_HMM.csv")
 Mobile.final <- read.csv("Mobilefinal_HMM.csv")
 AllPoints.final <- read.csv("AllPoints.csv")
 
+#Number of points for each track
+numpoints <- AllPoints.final %>% group_by(ID) %>% summarize(Total = n()/11) %>% arrange(Total)
+numpoints
+mean(numpoints$Total)
+
 #Set mean and precision priors for slope coefficients
 mean.beta <- 0
 prec.beta <- 1e-4  

@@ -77,11 +77,12 @@ full_all_hmm2 <- hmm_data.raw[full_all, roll = 'nearest'] %>%
   select(ID, BirdID, location_lat, location_long, timestamp, State) %>% 
   arrange(ID, timestamp) %>%
   group_by(ID) %>%
-  mutate(sincelast = as.numeric(timestamp - lag(timestamp))) %>%
-  mutate(tillnext = as.numeric(lead(timestamp) - timestamp)) %>%
-  ungroup() %>%
-  mutate(keep = ifelse(abs(sincelast) > 2 & tillnext > 2, 1,
+  mutate(sincelast = difftime(timestamp, lag(timestamp), units = "secs")) %>%
+  mutate(tillnext = difftime(lead(timestamp),timestamp, units = "secs")) %>%
+  mutate(keep = ifelse(abs(sincelast) > 120 & abs(tillnext) > 120, 1,
                        ifelse(minute(timestamp) != 0 & second(timestamp) != 0, 1, 0))) %>%
+  ungroup() %>% 
+  arrange(ID, timestamp) %>%
   filter(keep == 1) %>%
   dplyr::select(-keep, -sincelast, -tillnext)
 
