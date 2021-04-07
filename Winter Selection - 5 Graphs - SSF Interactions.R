@@ -50,7 +50,9 @@ int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape
 
 
 #Graph showing interaction terms for Previous days wind chill
-int.Wind <- interactions.raw %>% filter(WeatherCov == "WC_prev")
+int.Wind <- interactions.raw %>% 
+  mutate(WeatherCov = ifelse(WeatherCov == WC_prev, "WC", WeatherCov)) %>%
+  filter(WeatherCov == "WC")
 int.wind.graph <- ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2, size = 1.5) +
   geom_point(size = 8,
