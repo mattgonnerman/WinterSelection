@@ -7,20 +7,18 @@ require(tidyr)
 ################################################################################################
 ### Plot Specific Resource Selection Relationships For Each Land Cover Covariate
 Roost.SSF.results <- read.csv("Results/roostresults.full.csv") %>%
-  mutate(Beh_State = "Roosting") %>%
-  mutate(WeatherCov = ifelse(WeatherCov == WC_prev, "WC", WeatherCov))
+  mutate(Beh_State = "Roosting")
 Stationary.SSF.results <- read.csv("Results/stationaryresults.full.csv") %>%
-  mutate(Beh_State = "Stationary") %>%
-  mutate(WeatherCov = ifelse(WeatherCov == WC_prev, "WC", WeatherCov))
+  mutate(Beh_State = "Stationary")
 Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
-  mutate(Beh_State = "Mobile") %>%
-  mutate(WeatherCov = ifelse(WeatherCov == WC_prev, "WC", WeatherCov))
+  mutate(Beh_State = "Mobile")
 
 interactions.raw <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
   mutate(CovName = ifelse(CovName == HabitatCov, "LC_Coef", 
                           ifelse(CovName == WeatherCov, "W_Coef",
                                  ifelse(CovName == "StepLength.Z", "SL_Coef",
-                                        "Int_Coef")))) %>%
+                                        "Int_Coef"))))  %>%
+  mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
   dplyr::select(-sd) %>%
   mutate(X0.025quant = ifelse(CovName == "LC_Coef", X0.025quant, NA)) %>%
   mutate(X0.975quant = ifelse(CovName == "LC_Coef", X0.975quant, NA)) %>%

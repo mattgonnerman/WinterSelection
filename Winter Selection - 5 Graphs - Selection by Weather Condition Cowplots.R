@@ -7,6 +7,7 @@ require(forcats)
 require(cowplot)
 
 interactions.raw <- read.csv("Results/CowplotData.csv") %>%
+  mutate(Weath_Cov = ifelse(Weath_Cov == "WC_prev", "WC", Weath_Cov)) %>%
   arrange(Beh_State, LC_Cov) %>% 
   mutate(LC_Cov = ifelse(LC_Cov == "DtFE.Z", "Dist. to Forest Edge",
                          ifelse(LC_Cov == "PropAg.Z", "Agriculture",
@@ -21,12 +22,12 @@ interactions.raw <- read.csv("Results/CowplotData.csv") %>%
 
 
 int.Snow.Roost <- interactions.raw %>% filter(Weath_Cov == "SD") %>% filter(Beh_State == "Roosting")
-int.Wind.Roost <- interactions.raw %>% filter(Weath_Cov == "WC_prev") %>% filter(Beh_State == "Roosting")
+int.Wind.Roost <- interactions.raw %>% filter(Weath_Cov == "WC") %>% filter(Beh_State == "Roosting")
 int.Snow.Loaf <- interactions.raw %>% filter(Weath_Cov == "SD") %>% filter(Beh_State == "Stationary") %>% distinct()
-int.Wind.Loaf <- interactions.raw %>% filter(Weath_Cov == "WC_prev") %>% filter(Beh_State == "Stationary") %>% distinct()
+int.Wind.Loaf <- interactions.raw %>% filter(Weath_Cov == "WC") %>% filter(Beh_State == "Stationary") %>% distinct()
 int.Snow.Forage <- interactions.raw %>% filter(Weath_Cov == "SD") %>% filter(Beh_State == "Mobile") %>% distinct()
-int.Wind.Forage <- interactions.raw %>% filter(Weath_Cov == "WC_prev") %>% filter(Beh_State == "Mobile") %>% distinct()
-int.Wind <- interactions.raw %>% filter(Weath_Cov == "WC_prev")
+int.Wind.Forage <- interactions.raw %>% filter(Weath_Cov == "WC") %>% filter(Beh_State == "Mobile") %>% distinct()
+int.Wind <- interactions.raw %>% filter(Weath_Cov == "WC")
 int.Snow <- interactions.raw %>% filter(Weath_Cov == "SD")
 
 # Condition Thresholds (Used summary on raw data and chose near 1st/3rd Quantile and Mean)
