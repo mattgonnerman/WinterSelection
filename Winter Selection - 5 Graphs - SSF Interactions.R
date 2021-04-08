@@ -33,7 +33,7 @@ int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape
   geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
                 width = 0, size = 2,
                 position = position_dodge(width = .4)) +
-  theme_bw(base_size = 50) + 
+  theme_classic(base_size = 50) + 
   xlab("Coefficient Estimate") +
   ylab("") +
   ggtitle("Snow Depth") +
@@ -60,7 +60,7 @@ int.wind.graph <- ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape
   geom_errorbar(aes(xmin = X0.025quant, xmax = X0.975quant),
                 width = 0, size = 2,
                 position = position_dodge(width = .4)) +
-  theme_bw(base_size = 50) + 
+  theme_classic(base_size = 50) + 
   xlab("Coefficient Estimate") +
   ylab("") +
   ggtitle("Wind Chill") +

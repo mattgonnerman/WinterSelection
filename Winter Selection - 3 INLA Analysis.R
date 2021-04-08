@@ -425,7 +425,7 @@ sink()
 sink('Results/StationaryResults_HMM.csv')
 cat('Stationary ~ Basal Area + Wind Chill + BA*WC + BA|IND')
 cat('\n')
-formula.random <- Use ~  -1 + BA.Z + WC_prev + BA.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + BA.Z + WC + BA.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,BA.Z,values=1:26,model="iid", #Random Slope
@@ -501,7 +501,7 @@ cat("\n")
 
 cat('Stationary ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')
 cat('\n')
-formula.random <- Use ~  -1 + DtFE.Z + WC_prev + DtFE.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + DtFE.Z + WC + DtFE.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,DtFE.Z,values=1:26,model="iid", #Random Slope
@@ -577,7 +577,7 @@ cat("\n")
 
 # cat('Stationary ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
 # cat('\n')
-# formula.random <- Use ~  -1 + SW.Z + WC_prev + SW.Z*WC_prev + #Fixed effects
+# formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
 #   StepLength.Z + #step length
 #   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
 #   f(ID,SW.Z,values=1:26,model="iid", #Random Slope
@@ -653,7 +653,7 @@ cat("\n")
 
 cat('Stationary ~ Mean Height + Wind Chill + Ht*WC + Ht|IND')
 cat('\n')
-formula.random <- Use ~  -1 + Ht.Z + WC_prev + Ht.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + Ht.Z + WC + Ht.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,Ht.Z,values=1:26,model="iid", #Random Slope
@@ -729,7 +729,7 @@ cat("\n")
 
 cat('Stationary ~ Wind Exposure + Wind Chill + WindExp*WC + WindExp|IND')
 cat('\n')
-formula.random <- Use ~  -1 + Wind.Exp.Z + WC_prev + Wind.Exp.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + Wind.Exp.Z + WC + Wind.Exp.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,Wind.Exp.Z,values=1:26,model="iid", #Random Slope
@@ -805,7 +805,7 @@ cat("\n")
 
 cat('Stationary ~ Proportion Ag + Wind Chill + PropAg*WC + PropAg|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropAg.Z + WC_prev + PropAg.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropAg.Z + WC + PropAg.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropAg.Z,values=1:26,model="iid", #Random Slope
@@ -881,7 +881,7 @@ cat("\n")
 
 cat('Stationary ~ Proportion Dev + Wind Chill + PropDev*WC + PropDev|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropDev.Z + WC_prev + PropDev.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropDev.Z + WC + PropDev.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropDev.Z,values=1:26,model="iid", #Random Slope
@@ -957,7 +957,7 @@ cat("\n")
 
 cat('Stationary ~ Proportion SW + Wind Chill + PropSW*WC + PropSW|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropSW.Z + WC_prev + PropSW.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropSW.Z + WC + PropSW.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropSW.Z,values=1:26,model="iid", #Random Slope
@@ -1033,7 +1033,7 @@ cat("\n")
 
 cat('Stationary ~ Proportion FoodSub + Wind Chill + PropFoodSub*WC + PropFoodSub|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropFoodSub.Z + WC_prev + PropFoodSub.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropFoodSub.Z + WC + PropFoodSub.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropFoodSub.Z,values=1:26,model="iid", #Random Slope
@@ -1118,7 +1118,7 @@ sink('Results/MobileResults_HMM.csv')
 
 cat('Mobile ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')
 cat('\n')
-formula.random <- Use ~  -1 + DtFE.Z + WC_prev + DtFE.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + DtFE.Z + WC + DtFE.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,DtFE.Z,values=1:26,model="iid", #Random Slope
@@ -1194,7 +1194,7 @@ cat("\n")
 
 # cat('Mobile ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
 # cat('\n')
-# formula.random <- Use ~  -1 + SW.Z + WC_prev + SW.Z*WC_prev + #Fixed effects
+# formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
 #   StepLength.Z + #step length
 #   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
 #   f(ID,SW.Z,values=1:26,model="iid", #Random Slope
@@ -1270,7 +1270,7 @@ cat("\n")
 
 cat('Mobile ~ Wind Exposure + Wind Chill + WindExp*WC + WindExp|IND')
 cat('\n')
-formula.random <- Use ~  -1 + Wind.Exp.Z + WC_prev + Wind.Exp.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + Wind.Exp.Z + WC + Wind.Exp.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,Wind.Exp.Z,values=1:26,model="iid", #Random Slope
@@ -1346,7 +1346,7 @@ cat("\n")
 
 cat('Mobile ~ Proportion Ag + Wind Chill + PropAg*WC + PropAg|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropAg.Z + WC_prev + PropAg.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropAg.Z + WC + PropAg.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropAg.Z,values=1:26,model="iid", #Random Slope
@@ -1422,7 +1422,7 @@ cat("\n")
 
 cat('Mobile ~ Proportion Dev + Wind Chill + PropDev*WC + PropDev|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropDev.Z + WC_prev + PropDev.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropDev.Z + WC + PropDev.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropDev.Z,values=1:26,model="iid", #Random Slope
@@ -1498,7 +1498,7 @@ cat("\n")
 
 cat('Mobile ~ Proportion SW + Wind Chill + PropSW*WC + PropSW|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropSW.Z + WC_prev + PropSW.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropSW.Z + WC + PropSW.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropSW.Z,values=1:26,model="iid", #Random Slope
@@ -1574,7 +1574,7 @@ cat("\n")
 
 cat('Mobile ~ Proportion FoodSubsidy + Wind Chill + PropFS*WC + PropFS|IND')
 cat('\n')
-formula.random <- Use ~  -1 + PropFoodSub.Z + WC_prev + PropFoodSub.Z*WC_prev + #Fixed effects
+formula.random <- Use ~  -1 + PropFoodSub.Z + WC + PropFoodSub.Z*WC + #Fixed effects
   StepLength.Z + #step length
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,PropFoodSub.Z,values=1:26,model="iid", #Random Slope
