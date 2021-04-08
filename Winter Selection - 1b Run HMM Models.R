@@ -1,5 +1,5 @@
 ### HMM Options Common Between Models ###
-retryFits <- 1 # number attempt to re-fit based on random perturbation
+retryFits <- 10 # number attempt to re-fit based on random perturbation
 nbStates <- 3 # Number of states
 stateNames <- c("roost", "loafing", "foraging") # label states
 dist = list(step = "gamma", angle = "wrpcauchy") # distributions for observation processes

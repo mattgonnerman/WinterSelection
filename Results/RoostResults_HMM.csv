@@ -1,190 +1,771 @@
+
+> cat("Roost ~ Basal Area + Wind Chill + BA*WC + BA|IND")
 Roost ~ Basal Area + Wind Chill + BA*WC + BA|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"BA.Z",1.21916854381561,0.138705551624298,0.948584747990308,1.21796118125234,1.49653019260138,1.21566915512085,1.23616620069042e-06
-"WC_prev",-0.122586563229561,1.44653582572937,-2.96262438192023,-0.122627299880159,2.71508137040241,-0.122586563229561,7.62132113370225e-12
-"StepLength.Z",0.118210524320602,0.0322457887232304,0.0540870675086168,0.118490129261365,0.180723631997643,0.119047231972218,1.27952942376532e-07
-"BA.Z:WC_prev",-0.00687531242147088,0.00374889862723649,-0.0142666092988735,-0.00686493186743241,0.00045108989058833,-0.00684392033144832,6.40558497132107e-07
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",4.22794225907465,1.80333932226101,1.71510714259399,3.8941823432198,8.68799867680507,3.3093392038323
-Posterior Mean of Variance: 
-0.2803163
-Posterior Mode of Variance: 
-0.2164939
-WAIC: 
-10496.7
-DIC: 
-10138.43
-Marginal Likelihood: 
--11629.31
+> cat('\n')
 
+
+> formula.random <- Use ~  -1 + BA.Z + WC_prev + BA.Z*WC_prev + #Fixed effects
++   StepLength.Z + #step length
++   f(StratID, model = "iid", hyper = l .... [TRUNCATED] 
+
+> model.BA.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                               control.fixed = list(
++       .... [TRUNCATED] 
+
+> write.csv(model.BA.WCprev.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"BA.Z",1.33968842029572,0.155880242586136,1.03318035701701,1.33921699251611,1.64827084100231,1.33824372291565,2.03029926052563e-06
+"WC_prev",-0.12536533176899,1.56728208065033,-3.20246875955338,-0.125409469581906,2.94917030243297,-0.12536533176899,4.04071546798538e-12
+"StepLength.Z",0.12486707419157,0.0349505469202995,0.0553584020447931,0.125172517544451,0.192618164867152,0.125781118869781,9.0592754330897e-08
+"BA.Z:WC_prev",-0.0100370580330491,0.00435609463602304,-0.0186402213410301,-0.0100199793104992,-0.00153730498129548,-0.00998566299676895,1.20271933469923e-06
+
+> write.csv(model.BA.WCprev.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",3.64047190390375,1.54363308595193,1.48189050314621,3.35712539104362,7.44869518737771,2.85275875002096
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.BA.WCprev.roost))
+0.3250582
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.BA.WCprev.roost))
+0.2508584
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.BA.WCprev.roost$waic$waic)
+8752.634
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.BA.WCprev.roost$dic$dic)
+8402.319
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.BA.WCprev.roost$mlik[2,1])
+-9716.87
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat("Roost ~ Basal Area + SnowDepth + BA*SD + BA|IND")
 Roost ~ Basal Area + SnowDepth + BA*SD + BA|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"BA.Z",1.06739521026611,0.132340684533119,0.806935563708021,1.06693722941207,1.33016948264624,1.06613457202911,2.78213887246453e-06
-"SD",-0.419804781675339,5.35531663894653,-10.9340957958624,-0.419955645816293,10.0857129708894,-0.419804930686951,3.04155794591609e-12
-"StepLength.Z",0.116936549544334,0.0322949327528477,0.0527284477987972,0.117212001671732,0.179557110096299,0.117760933935642,1.38277643775461e-07
-"BA.Z:SD",0.00910616759210825,0.0128046479076147,-0.0158271472544185,0.00903627191481981,0.0344039821809867,0.00889814086258411,5.61826037713163e-07
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",4.16515541734889,1.77651312189369,1.69107720388515,3.83495168067632,8.56135696631024,3.24598396040998
-Posterior Mean of Variance: 
-0.284545
-Posterior Mode of Variance: 
-0.2192735
-WAIC: 
-10497.7
-DIC: 
-10141.13
-Marginal Likelihood: 
--11628.21
+> cat('\n')
 
+
+> formula.random <- Use ~ -1 + BA.Z + SD + BA.Z*SD +
++   StepLength.Z + 
++   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6),  .... [TRUNCATED] 
+
+> model.BA.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                           control.fixed = list(
++               .... [TRUNCATED] 
+
+> write.csv(model.BA.SD.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"BA.Z",1.0747013092041,0.144951373338699,0.786947258866049,1.07504207757424,1.36010844888439,1.07569313049316,2.63813413201979e-06
+"SD",-0.421601086854935,5.7744460105896,-11.7587845342003,-0.421763669152236,10.9061190287832,-0.421600997447968,1.22334694859164e-11
+"StepLength.Z",0.12206606566906,0.0349437594413757,0.052570458748254,0.12237157841409,0.189803482450797,0.122980311512947,7.14187006254469e-08
+"BA.Z:SD",0.0226465668529272,0.0141431000083685,-0.00454141892248636,0.0224550581287335,0.0509539269134211,0.0220757052302361,5.41155457083635e-07
+
+> write.csv(model.BA.SD.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",3.43996344052035,1.44951480072865,1.40921608464299,3.1748735141785,7.01025483103417,2.70229762159104
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.BA.SD.roost))
+0.343312
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.BA.SD.roost))
+0.2657944
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.BA.SD.roost$waic$waic)
+8754.545
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.BA.SD.roost$dic$dic)
+8404.638
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.BA.SD.roost$mlik[2,1])
+-9715.754
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')
 Roost ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"DtFE.Z",0.663663327693939,0.204881638288498,0.25937020194924,0.663315352804936,1.06941239315608,0.662609219551086,4.51457707553804e-05
-"WC_prev",-0.109007976949215,1.44651401042938,-2.9490022063771,-0.10904871068404,2.72861544508244,-0.109007954597473,4.6215060189908e-11
-"StepLength.Z",0.118886135518551,0.0308031365275383,0.0574228116889114,0.119226464300662,0.178406138218992,0.119903206825256,1.63827144036063e-08
-"DtFE.Z:WC_prev",-0.00832187756896019,0.00360201136209071,-0.0154194764749929,-0.00831324746480188,-0.00127904228649949,-0.00829574279487133,5.49963503691082e-07
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",1.30118411860624,0.441239188134742,0.614694734559875,1.24082852134937,2.33475959564887,1.12271280680148
-Posterior Mean of Variance: 
-0.8621517
-Posterior Mode of Variance: 
-0.7074007
-WAIC: 
-143985.6
-DIC: 
-10586.72
-Marginal Likelihood: 
--11860.18
+> cat('\n')
 
+
+> formula.random <- Use ~  -1 + DtFE.Z + WC_prev + DtFE.Z*WC_prev + #Fixed effects
++   StepLength.Z + #step length
++   f(StratID, model = "iid", hyper .... [TRUNCATED] 
+
+> model.DtFE.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                                 control.fixed = list(
++   .... [TRUNCATED] 
+
+> write.csv(model.DtFE.WCprev.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"DtFE.Z",0.605655014514923,0.209994241595268,0.192650658757803,0.604795173343775,1.02301672773295,0.603138029575348,5.2426070002888e-05
+"WC_prev",-0.109600819647312,1.56728768348694,-3.18671423088081,-0.109644964291472,2.964943699681,-0.109600827097893,6.08406787212719e-11
+"StepLength.Z",0.11851342767477,0.0327832698822021,0.0530975918524169,0.118876131229241,0.181858206470141,0.119597353041172,2.16413572648349e-08
+"DtFE.Z:WC_prev",-0.00751239433884621,0.00376827479340136,-0.0149546717902026,-0.00749751786949519,-0.000159844027003021,-0.00746760657057166,5.22403606576687e-07
+
+> write.csv(model.DtFE.WCprev.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",1.28956640970291,0.458017371736584,0.588361705243798,1.22302626343507,2.37371938531641,1.09318185095968
+
+> cat("Posterior Mean of Variance: ")
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.DtFE.WCprev.roost))
+0.8790884
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.DtFE.WCprev.roost))
+0.7100698
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.DtFE.WCprev.roost$waic$waic)
+10515.88
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.DtFE.WCprev.roost$dic$dic)
+8906.366
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.DtFE.WCprev.roost$mlik[2,1])
+-9974.499
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Distance to Edge + SnowDepth + DtE*SD + DtE|IND')
 Roost ~ Distance to Edge + SnowDepth + DtE*SD + DtE|IND
+> cat('\n')
+
+
+> formula.random <- Use ~ -1 + DtFE.Z + SD + DtFE.Z*SD +
++   StepLength.Z + 
++   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e- .... [TRUNCATED] 
+
+> model.DtFE.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                             control.fixed = list(
++           .... [TRUNCATED] 
+
+> write.csv(model.DtFE.SD.roost$summary.fixed)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"DtFE.Z",0.49603933095932,0.201580986380577,0.0967650773857853,0.49607033290569,0.894677741323666,0.496121883392334,5.2991965771959e-05
-"SD",-0.361890941858292,5.35565328598022,-10.8768441221767,-0.362041744514281,10.1442840099871,-0.361890852451324,2.18725593146328e-11
-"StepLength.Z",0.118349574506283,0.0307849366217852,0.0569263638012199,0.118688367351264,0.177838025465657,0.119362063705921,1.83691281108753e-08
-"DtFE.Z:SD",0.00508349575102329,0.00959175080060959,-0.0142251338595295,0.00524867990600502,0.0234605544461384,0.00557669019326568,1.61419099213578e-06
+"DtFE.Z",0.441773355007172,0.206266537308693,0.0341805647917435,0.441418277603707,0.850900829817315,0.440781891345978,5.22113870821072e-05
+"SD",-0.348503738641739,5.77490568161011,-11.6865895211351,-0.348666395878635,10.98011627921,-0.348503798246384,2.57630664499103e-11
+"StepLength.Z",0.116085678339005,0.032795999199152,0.0506402855993871,0.116449987617804,0.179451072199469,0.117174379527569,2.47915562452512e-08
+"DtFE.Z:SD",0.00755273504182696,0.0103778271004558,-0.0130383933759957,0.00762526551804733,0.0277231440490645,0.00777026824653149,1.83525305999201e-07
+
+> write.csv(model.DtFE.SD.roost$summary.hyperpar)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",1.25255305509113,0.423844492819008,0.592851467217886,1.19456363332077,2.24535997462713,1.0828524557029
+"Precision for ID",1.24566028356382,0.442226174250172,0.568778322076241,1.18102158324389,2.29292446820898,1.05783121499349
+
+> cat('Posterior Meand of Variance: ')
 Posterior Meand of Variance: 
-0.8951864
-Posterior Mode of Variance: 
-0.7368342
-WAIC: 
-198366.5
-DIC: 
-10592.07
-Marginal Likelihood: 
--11860.42
+> cat('\n')
 
+
+> cat(inla_emarginal(model.DtFE.SD.roost))
+0.9098536
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.DtFE.SD.roost))
+0.73877
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.DtFE.SD.roost$waic$waic)
+9954.568
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.DtFE.SD.roost$dic$dic)
+8908.796
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.DtFE.SD.roost$mlik[2,1])
+-9973.914
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
 Roost ~ Percent Softwood + Wind Chill + SW*WC + SW|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"SW.Z",0.957910239696503,0.108940221369267,0.742154485881104,0.958182143928843,1.17187015552275,0.958652079105377,2.40806490600146e-05
-"WC_prev",-0.109174303710461,1.44646787643433,-2.94907810292055,-0.109215044868303,2.72835911509301,-0.109174311161041,2.80190245022227e-11
-"StepLength.Z",0.111204974353313,0.0305228438228369,0.0503390382616276,0.111528698393968,0.170219653446978,0.112172566354275,7.99670859455895e-08
-"SW.Z:WC_prev",-0.0136337513104081,0.00358970160596073,-0.0207142592715558,-0.0136228945533316,-0.0066201257146434,-0.0136009873822331,2.61612769544676e-08
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",9.67315220690407,4.72792426957409,3.5760697248081,8.65674087190156,21.7686168390171,7.02304480115041
-Posterior Mean of Variance: 
-0.1274645
-Posterior Mode of Variance: 
-0.09511549
-WAIC: 
-10727.44
-DIC: 
-10547.8
-Marginal Likelihood: 
--11831.87
+> cat('\n')
 
+
+> formula.random <- Use ~  -1 + SW.Z + WC_prev + SW.Z*WC_prev + #Fixed effects
++   StepLength.Z + #step length
++   f(StratID, model = "iid", hyper = l .... [TRUNCATED] 
+
+> model.SW.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                               control.fixed = list(
++       .... [TRUNCATED] 
+
+> write.csv(model.SW.WCprev.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"SW.Z",0.932438135147095,0.120953746140003,0.693454830971448,0.932535163211173,1.17038606641049,0.932604014873505,3.94874076708562e-06
+"WC_prev",-0.110257245600224,1.56728172302246,-3.18735974464478,-0.110301381415356,2.96427707524894,-0.110257245600224,2.22752219780911e-12
+"StepLength.Z",0.118766441941261,0.0325853563845158,0.053888726546204,0.119076774545188,0.181864074045684,0.119694657623768,9.78508205994895e-08
+"SW.Z:WC_prev",-0.0130019728094339,0.00395859451964498,-0.0208031595142261,-0.0129923491315345,-0.0052619398632963,-0.0129727842286229,7.18694223914712e-07
+
+> write.csv(model.SW.WCprev.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",7.82546261185307,3.69287174738112,2.96310067671338,7.06223624048998,17.1992547430406,5.80723024596936
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.SW.WCprev.roost))
+0.155858
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.SW.WCprev.roost))
+0.1173666
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.SW.WCprev.roost$waic$waic)
+9018.503
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.SW.WCprev.roost$dic$dic)
+8858.584
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.SW.WCprev.roost$mlik[2,1])
+-9943.417
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Percent Softwood + SnowDepth + SW*SD + SW|IND')
 Roost ~ Percent Softwood + SnowDepth + SW*SD + SW|IND
+> cat('\n')
+
+
+> formula.random <- Use ~ -1 + SW.Z + SD + SW.Z*SD +
++   StepLength.Z + 
++   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6),  .... [TRUNCATED] 
+
+> model.SW.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                           control.fixed = list(
++               .... [TRUNCATED] 
+
+> write.csv(model.SW.SD.roost$summary.fixed)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"SW.Z",0.655530333518982,0.102639183402061,0.450360351673321,0.656338991688929,0.856035592112775,0.65791130065918,4.24970339756763e-05
-"SD",-0.398679286241531,5.35550022125244,-10.9133306761851,-0.398830044233555,10.107192822844,-0.398679077625275,4.97598013057443e-11
-"StepLength.Z",0.11056862026453,0.0305874608457088,0.0495766372782439,0.110892047851109,0.169710900689577,0.111535347998142,7.05481080593033e-08
-"SW.Z:SD",0.0176959298551083,0.0119265764951706,-0.0054268299020715,0.01759696556052,0.0413669031980143,0.0174011923372746,2.2352960267446e-08
+"SW.Z",0.65575635433197,0.110678300261497,0.433749379307176,0.656897073134933,0.871176514940671,0.659056603908539,3.82751773126389e-05
+"SD",-0.377553701400757,5.7744312286377,-11.7147068316855,-0.377716320941963,10.950137840588,-0.377553701400757,4.3606157303968e-11
+"StepLength.Z",0.11328836530447,0.0324935503304005,0.0485941220769365,0.113597317344473,0.176208694186452,0.114212341606617,2.87480108556094e-07
+"SW.Z:SD",0.0140927033498883,0.0124328248202801,-0.00998101566655763,0.0139795589694561,0.0387985280040176,0.0137553671374917,4.155581405023e-07
+
+> write.csv(model.SW.SD.roost$summary.hyperpar)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",8.46714031850379,4.13965283501294,3.15324393719947,7.54170175183901,19.1280602960864,6.28078512503209
+"Precision for ID",7.35649134344183,3.48783409692729,2.74733685905247,6.65388757407443,16.223899805802,5.66340703170169
+
+> cat("Posterior Mean of Variance")
 Posterior Mean of Variance
-0.1454274
-Posterior Mode of Variance
-0.1158985
-WAIC: 
-10735.29
-DIC: 
-10559.62
-Marginal Likelihood: 
--11835.55
+> cat('\n')
 
+
+> cat(inla_emarginal(model.SW.SD.roost))
+0.1663949
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance')
+Posterior Mode of Variance
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.SW.SD.roost))
+0.1262494
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.SW.SD.roost$waic$waic)
+9021.279
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.SW.SD.roost$dic$dic)
+8867.706
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.SW.SD.roost$mlik[2,1])
+-9945.767
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Mean Height + Wind Chill + Ht*WC + Ht|IND')
 Roost ~ Mean Height + Wind Chill + Ht*WC + Ht|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"Ht.Z",1.32401204109192,0.219165176153183,0.896578927657736,1.32198080398829,1.7629027532737,1.31813621520996,5.04781996629147e-07
-"WC_prev",-0.131811290979385,1.44646799564362,-2.97171584926428,-0.131852032370246,2.70572347751982,-0.131811320781708,3.64925482257159e-12
-"StepLength.Z",0.1307283192873,0.0310373660176992,0.069055248403023,0.130980893725383,0.190942643485993,0.131484419107437,2.25531731050594e-07
-"Ht.Z:WC_prev",0.00479657622054219,0.00491633173078299,-0.00488040542336186,0.00480481205584533,0.0144182107019518,0.00482167256996036,1.16230343501152e-06
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",1.37915048353261,0.528499202648409,0.606586531003045,1.29204263946546,2.65489237234034,1.13032477756722
-Posterior Mean of Variance: 
-0.8349622
-Posterior Mode of Variance: 
-0.6667131
-WAIC: 
-172995421
-DIC: 
-10197.98
-Marginal Likelihood: 
--11659.53
+> cat('\n')
 
+
+> formula.random <- Use ~  -1 + Ht.Z + WC_prev + Ht.Z*WC_prev + #Fixed effects
++   StepLength.Z + #step length
++   f(StratID, model = "iid", hyper = l .... [TRUNCATED] 
+
+> model.Ht.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                               control.fixed = list(
++       .... [TRUNCATED] 
+
+> write.csv(model.Ht.WCprev.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"Ht.Z",1.43882036209106,0.234035789966583,0.97966438383516,1.43764754619041,1.90417214738905,1.43548202514648,2.51417681409875e-06
+"WC_prev",-0.135391116142273,1.56728267669678,-3.21249585045985,-0.135435245207454,2.93914618737278,-0.135391116142273,2.58320667458328e-11
+"StepLength.Z",0.155204847455025,0.0340985953807831,0.0873776786153836,0.155507265493527,0.221292101393018,0.156109720468521,6.87672520709588e-08
+"Ht.Z:WC_prev",0.000802217284217477,0.00579222990199924,-0.0106083284502853,0.000815169082804577,0.0121291677863896,0.000841463974211365,2.97303631394754e-06
+
+> write.csv(model.Ht.WCprev.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",1.31488276604646,0.522808065303529,0.565802042509371,1.22393404683902,2.59117729659064,1.05760162787017
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.Ht.WCprev.roost))
+0.8833617
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.Ht.WCprev.roost))
+0.6995721
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.Ht.WCprev.roost$waic$waic)
+4543426
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.Ht.WCprev.roost$dic$dic)
+8481.343
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.Ht.WCprev.roost$mlik[2,1])
+-9756.028
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Mean Height + SnowDepth + Ht*SD + Ht|IND')
 Roost ~ Mean Height + SnowDepth + Ht*SD + Ht|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"Ht.Z",1.42820656299591,0.214278563857079,1.00978436455362,1.42634594410056,1.85709981924008,1.42286586761475,4.82202266853372e-07
-"SD",-0.435271501541138,5.35532808303833,-10.9495855329711,-0.435422467132898,10.0702674001804,-0.435271948575974,5.6457854001991e-12
-"StepLength.Z",0.131138876080513,0.0309897046536207,0.0695616895653395,0.131390642467146,0.191261839342103,0.131892576813698,2.32751689747441e-07
-"Ht.Z:SD",-0.00632016500458121,0.0176696311682463,-0.0404793216967264,-0.00649819566655088,0.0288501244809418,-0.00685063283890486,9.99215500103339e-08
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",1.38166148994419,0.518161263626155,0.609598718172572,1.29834142978694,2.6354952481791,1.13685289574817
-Posterior Mean of Variance: 
-0.8302337
-Posterior Mode of Variance: 
-0.6624727
-WAIC: 
-139027501
-DIC: 
-10199.07
-Marginal Likelihood: 
--11657.35
+> cat('\n')
 
+
+> formula.random <- Use ~ -1 + Ht.Z + SD + Ht.Z*SD +
++   StepLength.Z + 
++   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6),  .... [TRUNCATED] 
+
+> model.Ht.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                           control.fixed = list(
++               .... [TRUNCATED] 
+
+> write.csv(model.Ht.SD.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"Ht.Z",1.42851281166077,0.221924647688866,0.992982817786882,1.42725817587684,1.87091052247278,1.42501199245453,1.91745732913543e-06
+"SD",-0.440316647291183,5.77444219589233,-11.7774934327054,-0.440479325710098,10.8873991877491,-0.440316826105118,3.13780020700461e-13
+"StepLength.Z",0.155169919133186,0.0340871438384056,0.0873684186696702,0.155471221190764,0.221237657119786,0.156071469187737,7.28713624151061e-08
+"Ht.Z:SD",0.00569057743996382,0.0182013176381588,-0.0290935438865575,0.00536783834455478,0.042358050176742,0.00472745159640908,3.34927767342254e-07
+
+> write.csv(model.Ht.SD.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",1.31424763576071,0.523032480036406,0.565206509846277,1.22319343741414,2.59150308524752,1.05942430835218
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.Ht.SD.roost))
+0.8839483
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.Ht.SD.roost))
+0.7016436
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.Ht.SD.roost$waic$waic)
+3793370
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.Ht.SD.roost$dic$dic)
+8481.55
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.Ht.SD.roost$mlik[2,1])
+-9753.537
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Wind Exposure + Wind Chill + WindExp*WC + WindExp|IND')
 Roost ~ Wind Exposure + Wind Chill + WindExp*WC + WindExp|IND
+> cat('\n')
+
+
+> formula.random <- Use ~  -1 + Wind.Exp.Z + WC_prev + Wind.Exp.Z*WC_prev + #Fixed effects
++   StepLength.Z + #step length
++   f(StratID, model = "iid ..." ... [TRUNCATED] 
+
+> model.WindExp.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                                    control.fixed = lis .... [TRUNCATED] 
+
+> write.csv(model.WindExp.WCprev.roost$summary.fixed)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"Wind.Exp.Z",-0.134576246142387,0.0832576900720596,-0.303749607302333,-0.132751282788657,0.024477982658483,-0.129164561629295,5.01021110588013e-06
-"WC_prev",-0.107265792787075,1.44652426242828,-2.94728073447786,-0.107306527836386,2.73037907503259,-0.107265792787075,4.99231814134148e-13
-"StepLength.Z",0.132849857211113,0.0285968668758869,0.0759022127432929,0.133126102854251,0.188213444941428,0.133676126599312,3.50269897134652e-08
-"Wind.Exp.Z:WC_prev",0.00521620735526085,0.00326785119250417,-0.00115478748928162,0.00520174740992448,0.011663267202943,0.00517282076179981,1.6526221954859e-05
+"Wind.Exp.Z",-0.0682059600949287,0.0939534679055214,-0.259406817400963,-0.066004074229145,0.110770301515661,-0.0616516433656216,9.47425165120333e-06
+"WC_prev",-0.10802998393774,1.56728172302246,-3.18513248239405,-0.10807412311457,2.96650451166108,-0.10802998393774,1.62711628766188e-15
+"StepLength.Z",0.144451692700386,0.0305556152015924,0.0836092205701559,0.144744715432337,0.203613255941859,0.145328104496002,3.81480988595126e-08
+"Wind.Exp.Z:WC_prev",0.00288009736686945,0.00349584873765707,-0.00394454357007451,0.00286723741126485,0.00977118134293186,0.00284156389534473,6.83959423384531e-06
+
+> write.csv(model.WindExp.WCprev.roost$summary.hyperpar)
 "","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",94.4875827158737,604.944633525146,7.84140803516208,25.5022867590671,381.017216913874,15.7890696272006
+"Precision for ID",26.909071317256,50.4207173754078,5.92957041216104,17.3603698856619,98.1374688741481,11.63876328886
+
+> cat('Posterio Mean of Variance')
 Posterio Mean of Variance
-0.04567925
+> cat('\n')
+
+
+> cat(inla_emarginal(model.WindExp.WCprev.roost))
+0.06603417
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance')
 Posterior Mode of Variance
-0.02203741
-WAIC: 
-10964.95
-DIC: 
-10932.91
-Marginal Likelihood: 
--12024.69
+> cat('\n')
 
+
+> cat(inla_mmarginal(model.WindExp.WCprev.roost))
+0.04357169
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.WindExp.WCprev.roost$waic$waic)
+9216.854
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.WindExp.WCprev.roost$dic$dic)
+9185.515
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.WindExp.WCprev.roost$mlik[2,1])
+-10106.91
+> cat("\n")
+
+
+> cat("\n")
+
+
+> cat('Roost ~ Wind Exposure + SnowDepth + WindExp*SD + WindExp|IND')
 Roost ~ Wind Exposure + SnowDepth + WindExp*SD + WindExp|IND
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
-"Wind.Exp.Z",-0.0564418211579323,0.0704102367162704,-0.195052152118075,-0.0566469378252684,0.0830772051764559,-0.0570729970932007,7.90967249932138e-07
-"SD",-0.367461293935776,5.35535192489624,-10.8818225321838,-0.367612112402687,10.138124978702,-0.367461293935776,3.47469627892557e-12
-"StepLength.Z",0.132122412323952,0.0285663846880198,0.0752297752427089,0.132400410951763,0.187421625094578,0.13295391201973,4.82776350251013e-08
-"Wind.Exp.Z:SD",0.00203887862153351,0.0110041275620461,-0.019737682985254,0.00209700979989782,0.0234731616006477,0.00221367506310344,7.78070796916613e-07
-"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
-"Precision for ID",421.933061506176,4119.92928265644,9.54394197814225,35.214070058423,1495.93653836661,19.1118445911626
-Posterior Mean of Variance: 
-0.03438448
-Posterior Mode of Variance: 
-4.516668e-05
-WAIC: 
-10964.97
-DIC: 
-10934.8
-Marginal Likelihood: 
--12023.46
+> cat('\n')
 
+
+> formula.random <- Use ~ -1 + Wind.Exp.Z + SD + Wind.Exp.Z*SD +
++   StepLength.Z + 
++   f(StratID, model = "iid", hyper = list(theta = list(initial = .... [TRUNCATED] 
+
+> model.WindExp.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
++                                control.fixed = list(
++     .... [TRUNCATED] 
+
+> write.csv(model.WindExp.SD.roost$summary.fixed)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode","kld"
+"Wind.Exp.Z",-0.0453773438930511,0.0808540806174278,-0.208117779134112,-0.0442903348674598,0.111230369270962,-0.0421888194978237,1.67943285522373e-06
+"SD",-0.35414320230484,5.77435398101807,-11.6911464816463,-0.354305804492215,10.9733981283849,-0.354143172502518,5.60230369555591e-12
+"StepLength.Z",0.144165739417076,0.0305755920708179,0.0832746225133671,0.144462114169949,0.203357705763036,0.14505210518837,4.84556499053088e-08
+"Wind.Exp.Z:SD",0.00700064934790134,0.0106717050075531,-0.013780341763117,0.0069424215557397,0.0280853906059752,0.00682683847844601,3.26830598269156e-07
+
+> write.csv(model.WindExp.SD.roost$summary.hyperpar)
+"","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"Precision for ID",32.7117357579538,77.8288971780286,6.40275841622352,19.3981004314496,123.831882657165,13.462821342335
+
+> cat('Posterior Mean of Variance: ')
+Posterior Mean of Variance: 
+> cat('\n')
+
+
+> cat(inla_emarginal(model.WindExp.SD.roost))
+0.0597202
+> cat('\n')
+
+
+> cat('Posterior Mode of Variance: ')
+Posterior Mode of Variance: 
+> cat('\n')
+
+
+> cat(inla_mmarginal(model.WindExp.SD.roost))
+0.04005146
+> cat("\n")
+
+
+> cat('WAIC: ')
+WAIC: 
+> cat('\n')
+
+
+> cat(model.WindExp.SD.roost$waic$waic)
+9216.302
+> cat("\n")
+
+
+> cat('DIC: ')
+DIC: 
+> cat('\n')
+
+
+> cat(model.WindExp.SD.roost$dic$dic)
+9185.685
+> cat("\n")
+
+
+> cat('Marginal Likelihood: ')
+Marginal Likelihood: 
+> cat('\n')
+
+
+> cat(model.WindExp.SD.roost$mlik[2,1])
+-10104.62
+> cat("\n")
+
+
+> cat("\n")
+
+
+> sink()

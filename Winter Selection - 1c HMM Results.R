@@ -11,9 +11,9 @@ turkey_states$State <- turk_top_states
 write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
 
 #Diagnostic Plots
-plotPR(hmm.top.model)
-hist(turk_top_states)
-plot(hmm.top.model,legend.pos="right")
+# plotPR(hmm.top.model)
+# hist(turk_top_states)
+# plot(hmm.top.model,legend.pos="right")
 
 #Save Raw HMM Outputs as CSV
 write.csv(hmm.top.model$rawCovs, 'Results/HMM - RawCovs.csv')
