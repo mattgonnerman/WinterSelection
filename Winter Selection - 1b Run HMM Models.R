@@ -202,6 +202,13 @@ turk_m2.zm <- fitHMM(data = turkeyData.zm,
 hmm.top.model <- turk_m2.zm
 save(hmm.top.model, file = "hmmtopmodel.RData")
 
+#Associate behavioral states from best model with original data 
+turk_top_states <- viterbi(hmm.top.model)
+turkey_states <- turkeyData.zm
+turkey_states$State <- turk_top_states
+
+#Write output to csv to bring in, simplify, and combine with SSF data
+write.csv(turkey_states, "Results/HMMBehavioralStates_output.csv")
 
 
 # ##############################################################
