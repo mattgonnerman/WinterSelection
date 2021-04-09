@@ -2,6 +2,16 @@ require(dplyr)
 require(ggplot2)
 require(forcats)
 
+LCnames <- c("Dist. to Forest Edge", 
+             "Basal Area", 
+             "Mean Tree Height", 
+             "Percent Softwood",
+             "Wind Exposure", 
+             "Agriculture", 
+             "Developed", 
+             "Food Subsidy", 
+             "Proportion Softwood")
+
 ### Comparison of Magnitude of Interactions
 interactions.raw <- read.csv("Results/InteractionResults.csv") %>% 
   mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge",
@@ -15,7 +25,8 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
                                                                               ifelse(HabitatCov == "SW.Z", "Percent Softwood",
                                                                                      HabitatCov))))))))))%>%
   mutate(Beh_State = factor(Analysis, levels = c("Roosting", "Stationary", "Mobile"))) %>%
-  mutate(LC_Cov = as.factor(HabitatCov)) %>%
+  mutate(LC_Cov = factor(HabitatCov, levels = LCnames)) %>%
+  arrange(Beh_State, LC_Cov, WeatherCov) %>%
   rename(Interaction = mean, SD = sd)
 # interactions.raw$Beh_State <- factor(interactions.raw$Beh_State,
 #                                      levels = c("Roost", "Loafing", "Foraging"))
@@ -25,7 +36,8 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
 #                                              "Mean Tree Height", "Basal Area"))
 
 #Graph showing interaction terms for snow depth
-int.Snow <- interactions.raw %>% filter(WeatherCov == "SD")
+int.Snow <- interactions.raw %>% filter(WeatherCov == "SD") %>%
+  mutate(LC_Cov = fct_reorder(LC_Cov, rev(LCnames)))
 int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2, size = 1.5) +
   geom_point(size = 8,
@@ -52,7 +64,8 @@ int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape
 #Graph showing interaction terms for Previous days wind chill
 int.Wind <- interactions.raw %>% 
   mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
-  filter(WeatherCov == "WC")
+  filter(WeatherCov == "WC") %>%
+  mutate(LC_Cov = fct_reorder(LC_Cov, rev(LCnames)))
 int.wind.graph <- ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2, size = 1.5) +
   geom_point(size = 8,

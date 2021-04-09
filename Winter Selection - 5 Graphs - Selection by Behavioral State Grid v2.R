@@ -97,6 +97,61 @@ WE.SD.graph <- ggplot(data = WE.SD.input, aes(x = LC.Val, y = Est, group = Behav
                         # labels = c("Roosting", "Stationary", "Mobile"),
                         values = c("longdash", "solid", "twodash"))
 
+#Basal Area
+BA.SD.raw <- interactions.raw %>%
+  filter(Weath_Cov == "Snow Depth") %>% 
+  filter(LC_Cov == "Basal Area") %>%
+  mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
+  arrange(Beh_State)
+
+
+BA.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
+                                    rep("Stationary", 21),
+                                    rep("Mobile", 21)),
+                       LC = BA.SD.raw$LC_Cov[1],
+                       LC.Coef = c(rep(BA.SD.raw$LC_Coef[1], 21),
+                                   rep(BA.SD.raw$LC_Coef[2], 21),
+                                   rep(BA.SD.raw$LC_Coef[3], 21)),
+                       LC.LCL = c(rep(BA.SD.raw$LCL[1], 21),
+                                  rep(BA.SD.raw$LCL[2], 21),
+                                  rep(BA.SD.raw$LCL[3], 21)),
+                       LC.UCL = c(rep(BA.SD.raw$UCL[1], 21),
+                                  rep(BA.SD.raw$UCL[2], 21),
+                                  rep(BA.SD.raw$UCL[3], 21)),
+                       W.Coef = c(rep(BA.SD.raw$Weath_Coef[1], 21),
+                                  rep(BA.SD.raw$Weath_Coef[2], 21),
+                                  rep(BA.SD.raw$Weath_Coef[3], 21)),
+                       Int.Coef = c(rep(BA.SD.raw$Int_Coef[1], 21),
+                                    rep(BA.SD.raw$Int_Coef[2], 21),
+                                    rep(BA.SD.raw$Int_Coef[3], 21)),
+                       LC.Val = rep(seq(-2, 2,.2),3),
+                       W.Val = 4) %>%
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) 
+BA.SD.input <- BA.SD.df %>%
+  # mutate(Check1 = (LC.Coef*LC.Val)) %>%
+  # mutate(Check2 = (Int.Coef*LC.Val*W.Val)) %>%
+  # mutate(Check3 = Check1 + Check2) %>%
+  # mutate(Check4 = (LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)) %>%
+  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+BA.SD.graph <- ggplot(data = BA.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
+  geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
+  geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
+  geom_line(aes(color = Behavior, linetype = Behavior), size = 4) +
+  theme_classic(base_size = 55) +
+  xlab(BA.SD.df$LC[1]) + ylab("") +
+  theme(legend.key.width=unit(.6,"inch")) +
+  scale_color_manual(name = "Behavioral\nState",
+                     # labels = c("Roosting", "Stationary", "Mobile"),
+                     values = c("#1cade4", "#f1a806", "#46e300")) +
+  scale_fill_manual(name = "Behavioral\nState",
+                    # labels = c("Roosting", "Stationary", "Mobile"),
+                    values = c("#1cade4", "#f1a806", "#46e300")) +
+  scale_linetype_manual(name = "Behavioral\nState",
+                        # labels = c("Roosting", "Stationary", "Mobile"),
+                        values = c("longdash", "solid", "twodash"))
+
 #Distance to Forest Edge
 DtFE.SD.raw <- interactions.raw %>%
   filter(Weath_Cov == "Snow Depth") %>% 
@@ -151,8 +206,7 @@ DtFE.SD.graph <- ggplot(data = DtFE.SD.input, aes(x = LC.Val, y = Est, group = B
 #Percent Softwood
 PropSW.SD.raw <- interactions.raw %>%
   filter(Weath_Cov == "Snow Depth") %>% 
-  filter(LC_Cov == "Softwoods" | LC_Cov == "Percent Softwood") %>%
-  mutate(LC_Cov = "Percent Softwood") %>%
+  filter(LC_Cov == "Percent Softwood") %>%
   mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
   arrange(Beh_State)
 
@@ -252,16 +306,71 @@ FS.SD.raw <- interactions.raw %>%
   mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
   arrange(Beh_State)
 
+#Developds
+DEV.SD.raw <- interactions.raw %>%
+  filter(Weath_Cov == "Snow Depth") %>% 
+  filter(LC_Cov == "Developed") %>%
+  mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
+  arrange(Beh_State)
+
+
+DEV.SD.df <- data.frame(Behavior = c(rep("Stationary", 21),
+                                    rep("Mobile", 21)),
+                       LC = DEV.SD.raw$LC_Cov[1],
+                       LC.Coef = c(rep(DEV.SD.raw$LC_Coef[1], 21),
+                                   rep(DEV.SD.raw$LC_Coef[2], 21)),
+                       LC.LCL = c(rep(DEV.SD.raw$LCL[1], 21),
+                                  rep(DEV.SD.raw$LCL[2], 21)),
+                       LC.UCL = c(rep(DEV.SD.raw$UCL[1], 21),
+                                  rep(DEV.SD.raw$UCL[2], 21)),
+                       W.Coef = c(rep(DEV.SD.raw$Weath_Coef[1], 21),
+                                  rep(DEV.SD.raw$Weath_Coef[2], 21)),
+                       Int.Coef = c(rep(DEV.SD.raw$Int_Coef[1], 21),
+                                    rep(DEV.SD.raw$Int_Coef[2], 21)),
+                       LC.Val = rep(seq(-2, 2,.2),2),
+                       W.Val = 4) %>%
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) 
+DEV.SD.input <- DEV.SD.df %>%
+  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
+  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+DEV.SD.graph <- ggplot(data = DEV.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
+  geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
+  geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
+  geom_line(aes(color = Behavior, linetype = Behavior), size = 4) +
+  theme_classic(base_size = 55) +
+  xlab(DEV.SD.df$LC[1]) + ylab("") +
+  theme(legend.key.width=unit(.6,"inch")) +
+  scale_color_manual(name = "Behavioral\nState",
+                     # labels = c("Roosting", "Stationary", "Mobile"),
+                     values = c("#f1a806", "#46e300")) +
+  scale_fill_manual(name = "Behavioral\nState",
+                    # labels = c("Roosting", "Stationary", "Mobile"),
+                    values = c("#f1a806", "#46e300")) +
+  scale_linetype_manual(name = "Behavioral\nState",
+                        # labels = c("Roosting", "Stationary", "Mobile"),
+                        values = c("solid", "twodash"))
+
+
+DEV.SD.raw <- interactions.raw %>%
+  filter(Weath_Cov == "Snow Depth") %>% 
+  filter(LC_Cov == "Agriculture") %>%
+  mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
+  arrange(Beh_State)
+
 require(cowplot)
 legend <- get_legend(WE.SD.graph + theme(legend.title = element_blank() ,legend.position = "bottom", legend.key.width=unit(3,"inch")))
 WE.SD.graph <- WE.SD.graph + theme(legend.position = "none")
+BA.SD.graph <- BA.SD.graph + theme(legend.position = "none")
 DtFE.SD.graph <- DtFE.SD.graph + theme(legend.position = "none")
 PropSW.SD.graph <- PropSW.SD.graph + theme(legend.position = "none")
 FS.SD.graph <- FS.SD.graph + theme(legend.position = "none")
+DEV.SD.graph <- DEV.SD.graph + theme(legend.position = "none")
 
-LC_grid <- plot_grid(plotlist = list(WE.SD.graph,DtFE.SD.graph,
-                          PropSW.SD.graph, FS.SD.graph),
-          nrow = 2,
+LC_grid <- plot_grid(plotlist = list(DtFE.SD.graph, BA.SD.graph,
+                          PropSW.SD.graph, WE.SD.graph,
+                          FS.SD.graph, DEV.SD.graph),
+          nrow = 3,
           # labels = "auto",
           # label_size = 35,
           align = "hv",
@@ -270,7 +379,7 @@ LC_grid <- plot_grid(plotlist = list(WE.SD.graph,DtFE.SD.graph,
 
 
 
-jpeg('Results/Land Cover Grid.jpg', width = 2600, height = 1900)
+jpeg('Results/Land Cover Grid.jpg', width = 2500, height = 3000)
 plot_grid(plotlist = list(LC_grid, legend),
           nrow = 2, 
           rel_heights = c(1,.1)

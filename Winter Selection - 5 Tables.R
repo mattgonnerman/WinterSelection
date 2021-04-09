@@ -1,13 +1,20 @@
 require(dplyr)
-LCnames <- c("Dist. to Forest Edge", "Agriculture", "Developed", "Food Subsidy","Percent Softwood",
-              "Wind Exposure", "Basal Area", "Mean Tree Height", "Percent Softwood")
+LCnames <- c("Dist. to Forest Edge", 
+             "Basal Area", 
+             "Mean Tree Height", 
+             "Percent Softwood",
+              "Wind Exposure", 
+             "Agriculture", 
+             "Developed", 
+             "Food Subsidy", 
+             "Proportion Softwood")
 
 Roost.SSF.results <- read.csv("Results/roostresults.full.csv") %>% 
   mutate(CovName = ifelse(CovName == "DtFE.Z", "Dist. to Forest Edge",
                           ifelse(CovName == "PropAg.Z", "Agriculture",
                                  ifelse(CovName == "PropDev.Z", "Developed",
                                         ifelse(CovName == "PropFoodSub.Z", "Food Subsidy",
-                                               ifelse(CovName == "PropSW.Z", "Percent Softwood",
+                                               ifelse(CovName == "PropSW.Z", "Proportion Softwood",
                                                       ifelse(CovName == "Wind.Exp.Z", "Wind Exposure",
                                                              ifelse(CovName == "BA.Z", "Basal Area",
                                                                     ifelse(CovName == "Ht.Z", "Mean Tree Height",
@@ -17,7 +24,7 @@ Roost.SSF.results <- read.csv("Results/roostresults.full.csv") %>%
                    ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                                  ifelse(HabitatCov == "PropDev.Z", "Developed",
                                         ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                                               ifelse(HabitatCov == "PropSW.Z", "Percent Softwood",
+                                               ifelse(HabitatCov == "PropSW.Z", "Proportion Softwood",
                                                       ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                                                              ifelse(HabitatCov == "BA.Z", "Basal Area",
                                                                     ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
@@ -32,7 +39,7 @@ Stationary.SSF.results <- read.csv("Results/stationaryresults.full.csv") %>%
                           ifelse(CovName == "PropAg.Z", "Agriculture",
                                  ifelse(CovName == "PropDev.Z", "Developed",
                                         ifelse(CovName == "PropFoodSub.Z", "Food Subsidy",
-                                               ifelse(CovName == "PropSW.Z", "Percent Softwood",
+                                               ifelse(CovName == "PropSW.Z", "Proportion Softwood",
                                                       ifelse(CovName == "Wind.Exp.Z", "Wind Exposure",
                                                              ifelse(CovName == "BA.Z", "Basal Area",
                                                                     ifelse(CovName == "Ht.Z", "Mean Tree Height",
@@ -42,7 +49,7 @@ Stationary.SSF.results <- read.csv("Results/stationaryresults.full.csv") %>%
                              ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                                     ifelse(HabitatCov == "PropDev.Z", "Developed",
                                            ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                                                  ifelse(HabitatCov == "PropSW.Z", "Percent Softwood",
+                                                  ifelse(HabitatCov == "PropSW.Z", "Proportion Softwood",
                                                          ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                                                                 ifelse(HabitatCov == "BA.Z", "Basal Area",
                                                                        ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
@@ -57,7 +64,7 @@ Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
                           ifelse(CovName == "PropAg.Z", "Agriculture",
                                  ifelse(CovName == "PropDev.Z", "Developed",
                                         ifelse(CovName == "PropFoodSub.Z", "Food Subsidy",
-                                               ifelse(CovName == "PropSW.Z", "Percent Softwood",
+                                               ifelse(CovName == "PropSW.Z", "Proportion Softwood",
                                                       ifelse(CovName == "Wind.Exp.Z", "Wind Exposure",
                                                              ifelse(CovName == "BA.Z", "Basal Area",
                                                                     ifelse(CovName == "Ht.Z", "Mean Tree Height",
@@ -67,7 +74,7 @@ Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
                              ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                                     ifelse(HabitatCov == "PropDev.Z", "Developed",
                                            ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                                                  ifelse(HabitatCov == "PropSW.Z", "Percent Softwood",
+                                                  ifelse(HabitatCov == "PropSW.Z", "Proportion Softwood",
                                                          ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                                                                 ifelse(HabitatCov == "BA.Z", "Basal Area",
                                                                        ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
@@ -78,5 +85,8 @@ Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
   mutate('Behavioral State' = "Mobile")
 
 allLCresults <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
-  dplyr::select(-CovName)
+  dplyr::select(-CovName) %>%
+  mutate(`Behavioral State` = factor(`Behavioral State`, levels = c("Roosting", "Stationary", "Mobile"))) %>%
+  mutate(HabitatCov = factor(HabitatCov, levels = LCnames)) %>%
+  arrange(`Behavioral State`, HabitatCov, WeatherCov)
 write.csv(allLCresults, "Results/LC_Coefficients.csv", row.names = F)
