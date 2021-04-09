@@ -31,7 +31,7 @@ interactions.raw <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.
                   ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                   ifelse(HabitatCov == "PropDev.Z", "Developed",
                   ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                  ifelse(HabitatCov == "PropSW.Z", "Softwoods",
+                  ifelse(HabitatCov == "PropSW.Z", "Proportion Softwoods",
                   ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                   ifelse(HabitatCov == "BA.Z", "Basal Area",
                   ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
@@ -148,7 +148,7 @@ DtFE.SD.graph <- ggplot(data = DtFE.SD.input, aes(x = LC.Val, y = Est, group = B
                         # labels = c("Roosting", "Stationary", "Mobile"),
                         values = c("longdash", "solid", "twodash"))
 
-#Proportion Softwood
+#Percent Softwood
 PropSW.SD.raw <- interactions.raw %>%
   filter(Weath_Cov == "Snow Depth") %>% 
   filter(LC_Cov == "Softwoods" | LC_Cov == "Percent Softwood") %>%

@@ -8,7 +8,7 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
                              ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                                     ifelse(HabitatCov == "PropDev.Z", "Developed",
                                            ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                                                  ifelse(HabitatCov == "PropSW.Z", "Percent Softwood",
+                                                  ifelse(HabitatCov == "PropSW.Z", "Proportion Softwood",
                                                          ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                                                                 ifelse(HabitatCov == "BA.Z", "Basal Area",
                                                                        ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",

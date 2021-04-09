@@ -14,6 +14,8 @@ roostlist[[7]] <- model.Ht.WCprev.roost
 roostlist[[8]] <- model.Ht.SD.roost
 roostlist[[9]] <- model.WindExp.WCprev.roost
 roostlist[[10]] <- model.WindExp.SD.roost
+roostlist[[11]] <- model.PropSW.WCprev.roost
+roostlist[[12]] <- model.PropSW.SD.roost
   
 rm(roostresults)
 rm(roostmodelselection)
@@ -78,6 +80,8 @@ loaflist[[13]] <- model.PropSW.WCprev.Stationary
 loaflist[[14]] <- model.PropSW.SD.Stationary
 loaflist[[15]] <- model.PropFoodSub.WCprev.Stationary
 loaflist[[16]] <- model.PropFoodSub.SD.Stationary
+loaflist[[17]] <- model.SW.WCprev.Stationary
+loaflist[[18]] <- model.SW.SD.Stationary
 
 rm(loafresults)
 rm(loafmodelselection)
@@ -141,6 +145,10 @@ foragelist[[9]] <- model.PropSW.WCprev.Mobile
 foragelist[[10]] <- model.PropSW.SD.Mobile
 foragelist[[11]] <- model.PropFoodSub.WCprev.Mobile
 foragelist[[12]] <- model.PropFoodSub.SD.Mobile
+foragelist[[13]] <- model.BA.WCprev.Mobile
+foragelist[[14]] <- model.BA.SD.Mobile
+foragelist[[15]] <- model.SW.WCprev.Mobile
+foragelist[[16]] <- model.SW.SD.Mobile
 
 rm(forageresults)
 rm(foragemodelselection)

@@ -266,6 +266,82 @@ cat("\n")
 cat("\n")
 
 
+cat('Roost ~ Proportion Softwood + Wind Chill + SW*WC + SW|IND')
+cat('\n')
+formula.random <- Use ~  -1 + PropSW.Z + WC_prev + PropSW.Z*WC_prev + #Fixed effects
+  StepLength.Z + #step length
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
+  f(ID,PropSW.Z,values=1:26,model="iid", #Random Slope
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.PropSW.WCprev.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
+                              control.fixed = list(
+                                mean = mean.beta,
+                                prec = list(default = prec.beta)),
+                              control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.PropSW.WCprev.roost$summary.fixed)
+write.csv(model.PropSW.WCprev.roost$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.PropSW.WCprev.roost))
+cat('\n')
+cat('Posterior Mode of Variance: ')
+cat('\n')
+cat(inla_mmarginal(model.PropSW.WCprev.roost))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.PropSW.WCprev.roost$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.PropSW.WCprev.roost$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.PropSW.WCprev.roost$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
+cat('Roost ~ Proportion Softwood + SnowDepth + PropSW*SD + PropSW|IND')
+cat('\n')
+formula.random <- Use ~ -1 + PropSW.Z + SD + PropSW.Z*SD +
+  StepLength.Z + 
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
+  f(ID,PropSW.Z,values=1:26,model="iid",
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.PropSW.SD.roost <- inla(formula.random, family ="Poisson", data=RoostAll.final, 
+                          control.fixed = list(
+                            mean = mean.beta,
+                            prec = list(default = prec.beta)),
+                          control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.PropSW.SD.roost$summary.fixed)
+write.csv(model.PropSW.SD.roost$summary.hyperpar)
+cat("Posterior Mean of Variance")
+cat('\n')
+cat(inla_emarginal(model.PropSW.SD.roost))
+cat('\n')
+cat('Posterior Mode of Variance')
+cat('\n')
+cat(inla_mmarginal(model.PropSW.SD.roost))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.PropSW.SD.roost$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.PropSW.SD.roost$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.PropSW.SD.roost$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
 cat('Roost ~ Mean Height + Wind Chill + Ht*WC + Ht|IND')
 cat('\n')
 formula.random <- Use ~  -1 + Ht.Z + WC_prev + Ht.Z*WC_prev + #Fixed effects
@@ -575,80 +651,80 @@ cat("\n")
 cat("\n")
 
 
-# cat('Stationary ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
-# cat('\n')
-# formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
-#   StepLength.Z + #step length
-#   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
-#   f(ID,SW.Z,values=1:26,model="iid", #Random Slope
-#     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
-# 
-# model.SW.WCprev.Stationary <- inla(formula.random, family ="Poisson", data=Stationary.final, 
-#                                    control.fixed = list(
-#                                      mean = mean.beta,
-#                                      prec = list(default = prec.beta)),
-# control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
-# write.csv(model.SW.WCprev.Stationary$summary.fixed)
-# write.csv(model.SW.WCprev.Stationary$summary.hyperpar)
-# cat('Posterior Mean of Variance: ')
-# cat('\n')
-# cat(inla_emarginal(model.SW.WCprev.Stationary))
-# cat('\n')
-# cat('Posterior Mode of Variance: ')
-# cat('\n')
-# cat(inla_mmarginal(model.SW.WCprev.Stationary))
-# cat("\n")
-# cat('WAIC: ')
-# cat('\n')
-# cat(model.SW.WCprev.Stationary$waic$waic)
-# cat("\n")
-# cat('DIC: ')
-# cat('\n')
-# cat(model.SW.WCprev.Stationary$dic$dic)
-# cat("\n")
-# cat('Marginal Likelihood: ')
-# cat('\n')
-# cat(model.SW.WCprev.Stationary$mlik[2,1])
-# cat("\n")
-# cat("\n")
-# 
-# 
-# cat('Stationary ~ Percent Softwood + SnowDepth + SW*SD + SW|IND')
-# cat('\n')
-# formula.random <- Use ~ -1 + SW.Z + SD + SW.Z*SD +
-#   StepLength.Z + 
-#   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
-#   f(ID,SW.Z,values=1:26,model="iid",
-#     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
-# 
-# model.SW.SD.Stationary <- inla(formula.random, family ="Poisson", data=Stationary.final, 
-#                                control.fixed = list(
-#                                  mean = mean.beta,
-#                                  prec = list(default = prec.beta)),
-# control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
-# write.csv(model.SW.SD.Stationary$summary.fixed)
-# write.csv(model.SW.SD.Stationary$summary.hyperpar)
-# cat('Posterior Mean of Variance')
-# cat('\n')
-# cat(inla_emarginal(model.SW.SD.Stationary))
-# cat('\n')
-# cat('Posterior Mode of Variance')
-# cat('\n')
-# cat(inla_mmarginal(model.SW.SD.Stationary))
-# cat("\n")
-# cat('WAIC: ')
-# cat('\n')
-# cat(model.SW.SD.Stationary$waic$waic)
-# cat("\n")
-# cat('DIC: ')
-# cat('\n')
-# cat(model.SW.SD.Stationary$dic$dic)
-# cat("\n")
-# cat('Marginal Likelihood: ')
-# cat('\n')
-# cat(model.SW.SD.Stationary$mlik[2,1])
-# cat("\n")
-# cat("\n")
+cat('Stationary ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
+cat('\n')
+formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
+  StepLength.Z + #step length
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
+  f(ID,SW.Z,values=1:26,model="iid", #Random Slope
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.SW.WCprev.Stationary <- inla(formula.random, family ="Poisson", data=Stationary.final,
+                                   control.fixed = list(
+                                     mean = mean.beta,
+                                     prec = list(default = prec.beta)),
+control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.SW.WCprev.Stationary$summary.fixed)
+write.csv(model.SW.WCprev.Stationary$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.SW.WCprev.Stationary))
+cat('\n')
+cat('Posterior Mode of Variance: ')
+cat('\n')
+cat(inla_mmarginal(model.SW.WCprev.Stationary))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.SW.WCprev.Stationary$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.SW.WCprev.Stationary$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.SW.WCprev.Stationary$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
+cat('Stationary ~ Percent Softwood + SnowDepth + SW*SD + SW|IND')
+cat('\n')
+formula.random <- Use ~ -1 + SW.Z + SD + SW.Z*SD +
+  StepLength.Z +
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
+  f(ID,SW.Z,values=1:26,model="iid",
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.SW.SD.Stationary <- inla(formula.random, family ="Poisson", data=Stationary.final,
+                               control.fixed = list(
+                                 mean = mean.beta,
+                                 prec = list(default = prec.beta)),
+control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.SW.SD.Stationary$summary.fixed)
+write.csv(model.SW.SD.Stationary$summary.hyperpar)
+cat('Posterior Mean of Variance')
+cat('\n')
+cat(inla_emarginal(model.SW.SD.Stationary))
+cat('\n')
+cat('Posterior Mode of Variance')
+cat('\n')
+cat(inla_mmarginal(model.SW.SD.Stationary))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.SW.SD.Stationary$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.SW.SD.Stationary$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.SW.SD.Stationary$mlik[2,1])
+cat("\n")
+cat("\n")
 
 
 cat('Stationary ~ Mean Height + Wind Chill + Ht*WC + Ht|IND')
@@ -1192,80 +1268,156 @@ cat("\n")
 cat("\n")
 
 
-# cat('Mobile ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
-# cat('\n')
-# formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
-#   StepLength.Z + #step length
-#   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
-#   f(ID,SW.Z,values=1:26,model="iid", #Random Slope
-#     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
-# 
-# model.SW.WCprev.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final, 
-#                                control.fixed = list(
-#                                  mean = mean.beta,
-#                                  prec = list(default = prec.beta)),
-# control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
-# write.csv(model.SW.WCprev.Mobile$summary.fixed)
-# write.csv(model.SW.WCprev.Mobile$summary.hyperpar)
-# cat('Posterior Mean of Variance: ')
-# cat('\n')
-# cat(inla_emarginal(model.SW.WCprev.Mobile))
-# cat('\n')
-# cat('Posterior Mode of Variance')
-# cat('\n')
-# cat(inla_mmarginal(model.SW.WCprev.Mobile))
-# cat("\n")
-# cat('WAIC: ')
-# cat('\n')
-# cat(model.SW.WCprev.Mobile$waic$waic)
-# cat("\n")
-# cat('DIC: ')
-# cat('\n')
-# cat(model.SW.WCprev.Mobile$dic$dic)
-# cat("\n")
-# cat('Marginal Likelihood: ')
-# cat('\n')
-# cat(model.SW.WCprev.Mobile$mlik[2,1])
-# cat("\n")
-# cat("\n")
-# 
-# 
-# cat('Mobile ~ Percent Softwood + SnowDepth + SW*SD + SW|IND')
-# cat('\n')
-# formula.random <- Use ~ -1 + SW.Z + SD + SW.Z*SD +
-#   StepLength.Z + 
-#   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
-#   f(ID,SW.Z,values=1:26,model="iid",
-#     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
-# 
-# model.SW.SD.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final, 
-#                            control.fixed = list(
-#                              mean = mean.beta,
-#                              prec = list(default = prec.beta)),
-# control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
-# write.csv(model.SW.SD.Mobile$summary.fixed)
-# write.csv(model.SW.SD.Mobile$summary.hyperpar)
-# cat('Posterior Mean of Variance: ')
-# cat('\n')
-# cat(inla_emarginal(model.SW.SD.Mobile))
-# cat('\n')
-# cat('Posterior Mode of Variance: ')
-# cat('\n')
-# cat(inla_mmarginal(model.SW.SD.Mobile))
-# cat("\n")
-# cat('WAIC: ')
-# cat('\n')
-# cat(model.SW.SD.Mobile$waic$waic)
-# cat("\n")
-# cat('DIC: ')
-# cat('\n')
-# cat(model.SW.SD.Mobile$dic$dic)
-# cat("\n")
-# cat('Marginal Likelihood: ')
-# cat('\n')
-# cat(model.SW.SD.Mobile$mlik[2,1])
-# cat("\n")
-# cat("\n")
+cat('Mobile ~ Basal Area + Wind Chill + BA*WC + BA|IND')
+cat('\n')
+formula.random <- Use ~  -1 + BA.Z + WC + BA.Z*WC + #Fixed effects
+  StepLength.Z + #step length
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
+  f(ID,BA.Z,values=1:26,model="iid", #Random Slope
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.BA.WCprev.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final, 
+                                 control.fixed = list(
+                                   mean = mean.beta,
+                                   prec = list(default = prec.beta)),
+                                 control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.BA.WCprev.Mobile$summary.fixed)
+write.csv(model.BA.WCprev.Mobile$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.BA.WCprev.Mobile))
+cat('\n')
+cat('Posterior Mode of Variance: ')
+cat('\n')
+cat(inla_mmarginal(model.BA.WCprev.Mobile))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.BA.WCprev.Mobile$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.BA.WCprev.Mobile$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.BA.WCprev.Mobile$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
+cat('Mobile ~ Basal Area + SnowDepth + BA*SD + BA|IND')
+cat('\n')
+formula.random <- Use ~ -1 + BA.Z + SD + BA.Z*SD +
+  StepLength.Z + 
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
+  f(ID,BA.Z,values=1:26,model="iid",
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.BA.SD.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final, 
+                             control.fixed = list(
+                               mean = mean.beta,
+                               prec = list(default = prec.beta)),
+                             control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.BA.SD.Mobile$summary.fixed)
+write.csv(model.BA.SD.Mobile$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.BA.SD.Mobile))
+cat('\n')
+cat('Posterior Mode of Variance')
+cat('\n')
+cat(inla_mmarginal(model.BA.SD.Mobile))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.BA.SD.Mobile$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.BA.SD.Mobile$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.BA.SD.Mobile$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
+cat('Mobile ~ Percent Softwood + Wind Chill + SW*WC + SW|IND')
+cat('\n')
+formula.random <- Use ~  -1 + SW.Z + WC + SW.Z*WC + #Fixed effects
+  StepLength.Z + #step length
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
+  f(ID,SW.Z,values=1:26,model="iid", #Random Slope
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.SW.WCprev.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final,
+                               control.fixed = list(
+                                 mean = mean.beta,
+                                 prec = list(default = prec.beta)),
+control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.SW.WCprev.Mobile$summary.fixed)
+write.csv(model.SW.WCprev.Mobile$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.SW.WCprev.Mobile))
+cat('\n')
+cat('Posterior Mode of Variance')
+cat('\n')
+cat(inla_mmarginal(model.SW.WCprev.Mobile))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.SW.WCprev.Mobile$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.SW.WCprev.Mobile$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.SW.WCprev.Mobile$mlik[2,1])
+cat("\n")
+cat("\n")
+
+
+cat('Mobile ~ Percent Softwood + SnowDepth + SW*SD + SW|IND')
+cat('\n')
+formula.random <- Use ~ -1 + SW.Z + SD + SW.Z*SD +
+  StepLength.Z +
+  f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
+  f(ID,SW.Z,values=1:26,model="iid",
+    hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
+
+model.SW.SD.Mobile <- inla(formula.random, family ="Poisson", data=Mobile.final,
+                           control.fixed = list(
+                             mean = mean.beta,
+                             prec = list(default = prec.beta)),
+control.compute = list(mlik = TRUE, dic = TRUE, waic = TRUE))
+write.csv(model.SW.SD.Mobile$summary.fixed)
+write.csv(model.SW.SD.Mobile$summary.hyperpar)
+cat('Posterior Mean of Variance: ')
+cat('\n')
+cat(inla_emarginal(model.SW.SD.Mobile))
+cat('\n')
+cat('Posterior Mode of Variance: ')
+cat('\n')
+cat(inla_mmarginal(model.SW.SD.Mobile))
+cat("\n")
+cat('WAIC: ')
+cat('\n')
+cat(model.SW.SD.Mobile$waic$waic)
+cat("\n")
+cat('DIC: ')
+cat('\n')
+cat(model.SW.SD.Mobile$dic$dic)
+cat("\n")
+cat('Marginal Likelihood: ')
+cat('\n')
+cat(model.SW.SD.Mobile$mlik[2,1])
+cat("\n")
+cat("\n")
 
 
 cat('Mobile ~ Wind Exposure + Wind Chill + WindExp*WC + WindExp|IND')
