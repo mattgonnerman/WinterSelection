@@ -64,8 +64,8 @@ step.graph <- ggplot(gamma.data, aes(x = X)) +
                           labels = c("Roosting", "Stationary", "Mobile"),
                           guide = "legend") + 
   theme(legend.position = "none") 
-step.graph
-ggsave("Results/StepLengthDensity.png", width = 9, height = 7, units = "in")
+# step.graph
+# ggsave("Results/StepLengthDensity.png", width = 9, height = 7, units = "in")
 
 require(circular)
 wrpcauchy.data <- data.frame(
@@ -93,7 +93,7 @@ anglecon.graph <- ggplot(wrpcauchy.data, aes(x = X)) +
                                 expression(pi))) +
   theme_classic(base_size = 45) +
   xlab("Turning Angle") +
-  ylab(element_blank()) +
+  ylab("Density") +
   scale_color_identity(name = "Behavioral\nState",
                        breaks = c("#1cade4", "#f1a806", "#46e300"),
                        labels = c("Roosting", "Stationary", "Mobile"),
@@ -103,18 +103,59 @@ anglecon.graph <- ggplot(wrpcauchy.data, aes(x = X)) +
                           labels = c("Roosting", "Stationary", "Mobile"),
                           guide = "legend") + 
   theme(legend.position = "none") 
-anglecon.graph
-ggsave("Results/TurningAngleDensity.png", width = 7, height = 7, units = "in")
+# anglecon.graph
+# ggsave("Results/TurningAngleDensity.png", width = 7, height = 7, units = "in")
 
+###################################
+### Example Movement Tracks Map ###
+###################################
+require(dplyr)
+require(sf)
+
+setwd("E:/GitHub/WinterSelection")
+
+behpoints <- st_read("./Overview Figure/BehaviorPoints_412_2019.shp") %>%
+  mutate(State = factor(State, levels = c(3,2,1)))
+
+n <- nrow(behpoints) - 1
+linestrings <- lapply(X = 1:n, FUN = function(x) {
+  
+  pair <- st_combine(behpoints[x:(x+1),])
+  line <- st_as_sf(st_cast(pair, "LINESTRING"))
+  return(line)
+  
+})
+
+# One MULTILINESTRING object with all the LINESTRINGS
+multilinestring <- do.call("rbind", linestrings)
+multilinestring$State <- behpoints$State[2:(n+1)]
+
+## get the geom coordinates as data.frame
+geomdf <- st_coordinates(multilinestring)
+
+## reverse Y coords
+geomdf[,"Y"] <- geomdf[,"Y"]*-1
+
+simplemap <- ggplot() +
+  geom_sf(data = multilinestring, aes(color = State), size = 1.5) +
+  geom_sf(data = behpoints, aes(color = State), size = 5) + 
+  scale_color_manual(values = c("#46e300", "#f1a806", "#1cade4")) +
+  theme_void() +
+  theme(legend.position = "none") 
+  coord_flip()
 
 #Combine into grid
 require(cowplot)
 require(patchwork)
-Density_grid <- step.graph + anglecon.graph
-legend <- get_legend(step.graph + theme(legend.title = element_blank() ,legend.position = "bottom", legend.key.width=unit(3,"inch")))
-png('Results/Density Grid.png', width = 2000, height = 800)
+legend <- get_legend(step.graph + theme(legend.title = element_blank() ,
+                                        legend.position = "bottom", 
+                                        legend.key.width=unit(3,"inch")))
+Density_grid <- (step.graph / anglecon.graph) | simplemap
+Density_grid <- Density_grid + plot_annotation(tag_levels = 'A') & 
+  theme(plot.tag = element_text(size = 45))
+png('Results/Density Grid 2.png', width = 1500, height = 1450)
 plot_grid(plotlist = list(Density_grid, legend),
-          nrow = 2, 
-          rel_heights = c(1,.1)
+          nrow = 2,
+          rel_heights = c(20,1)
 )
 dev.off()

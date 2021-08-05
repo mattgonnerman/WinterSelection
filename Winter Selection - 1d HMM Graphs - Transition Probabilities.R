@@ -3,7 +3,8 @@ require(dplyr)
 require(tidyverse)
 require(momentuHMM)
 load("hmmtopmodel.RData")
-hmm.top.model
+m <- hmm.top.model
+
 
 ##################################################
 ## Plot the t.p. as functions of the covariates ##
@@ -213,6 +214,7 @@ SD2 <- ggplot(TP2.SD, aes(x = SD.cov)) +
                           labels = c("Roosting", "Stationary", "Mobile"),
                           guide = "legend") +
   xlab(element_blank()) +
+  xlim(-1, 2.5) +
   ylab(element_blank())
 
 ## 3 --> ? | Snow Depth
@@ -241,7 +243,48 @@ SD3 <- ggplot(TP3.SD, aes(x = SD.cov)) +
                           labels = c("Roosting", "Stationary", "Mobile"),
                           guide = "legend") +
   xlab("Snow Depth") +
+  xlim(-1, 2.5) +
   ylab(element_blank())
+
+
+
+### Time Budget Component
+tb.data <- read.csv("HMMBehavioralStates_output.csv") %>%
+  dplyr::select(State, WC.Z, SD.Z) %>%
+  mutate(State = factor(State, levels = c(1,2,3), labels = c("Roosting", "Stationary", "Mobile")))
+
+tb.WC <- ggplot(data = tb.data, aes(x = State, y = WC.Z)) +
+  geom_boxplot(aes(fill = State), alpha = .7, lwd = 1.5) +
+  theme_classic(base_size = 50) +
+  ylim(-2.5,2.5) +
+  scale_fill_manual(values = c("#1cade4", "#f1a806", "#46e300")) + 
+  theme(legend.position = "none") +
+  labs(y = "Wind Chill", y = element_blank())
+
+tb.SD <- ggplot(data = tb.data, aes(x = State, y = SD.Z)) +
+  geom_boxplot(aes(fill = State), alpha = .7, outlier.shape = NA, lwd = 1.5) +
+  theme_classic(base_size = 50) +
+  ylim(-2.5,2.5) +
+  scale_fill_manual(values = c("#1cade4", "#f1a806", "#46e300")) + 
+  theme(legend.position = "none") +
+  labs(y = "Snow Depth", x = element_blank())
+
+tb.WC1 <- ggplot(data = tb.data, aes(x = WC.Z, group = State)) +
+  geom_density(aes(fill = State, color = State), alpha = .3, lwd = 1.5) +
+  theme_classic(base_size = 50) +
+  scale_fill_manual(values = c("#1cade4", "#f1a806", "#46e300")) +
+  scale_color_manual(values = c("#1cade4", "#f1a806", "#46e300")) +
+  theme(legend.position = "none") +
+  labs(y = "Density", x = element_blank())
+
+tb.SD1 <- ggplot(data = tb.data, aes(x = SD.Z, group = State)) +
+  geom_density(aes(fill = State, color = State), alpha = .3, lwd = 1.5) +
+  theme_classic(base_size = 50) +
+  scale_fill_manual(values = c("#1cade4", "#f1a806", "#46e300")) +
+  scale_color_manual(values = c("#1cade4", "#f1a806", "#46e300")) +
+  theme(legend.position = "none") +
+  xlim(-1, 2.5) +
+  labs(y = "Density", x = element_blank())
 
 #Grid Plot
 require(cowplot)
@@ -251,20 +294,21 @@ WC3.graph <- WC3 + theme(legend.position = "none")
 SD2.graph <- SD2 + theme(legend.position = "none")
 SD3.graph <- SD3 + theme(legend.position = "none")
 
-TP_grid <- plot_grid(plotlist = list(WC2.graph, SD2.graph,
+TP_grid <- plot_grid(plotlist = list(tb.WC1, tb.SD1,
+                                     WC2.graph, SD2.graph,
                                      WC3.graph, SD3.graph),
-                     nrow = 2,
-                     # labels = "auto",
-                     # label_size = 35,
+                     nrow = 3,
+                     labels = "AUTO",
+                     label_size = 45,
                      align = "hv",
                      axis = "lb"
 )
 
 
 
-jpeg('Results/Transition Probability Grid.png', width = 2600, height = 1900)
+jpeg('Results/Transition Probability Grid.png', width = 2600, height = 2500)
 plot_grid(plotlist = list(TP_grid, legend),
           nrow = 2, 
-          rel_heights = c(1,.1)
+          rel_heights = c(1,.05)
 )
 dev.off()
