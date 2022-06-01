@@ -25,10 +25,14 @@ inla_mmarginal <- function(r.out){
 }
 
 #Load Data
-RoostAll.final <- read.csv("Roostfinal_HMM.csv")
-Stationary.final <- read.csv("Stationaryfinal_HMM.csv")
-Mobile.final <- read.csv("Mobilefinal_HMM.csv")
-AllPoints.final <- read.csv("AllPoints.csv")
+RoostAll.final <- read.csv("Roostfinal_HMM.csv") %>%
+  mutate(InFor = ifelse(BA > 0, 1, 0))
+Stationary.final <- read.csv("Stationaryfinal_HMM.csv") %>%
+  mutate(InFor = ifelse(BA > 0, 1, 0))
+Mobile.final <- read.csv("Mobilefinal_HMM.csv") %>%
+  mutate(InFor = ifelse(BA > 0, 1, 0))
+AllPoints.final <- read.csv("AllPoints.csv") %>%
+  mutate(InFor = ifelse(BA > 0, 1, 0))
 
 #Set mean and precision priors for slope coefficients
 mean.beta <- 0

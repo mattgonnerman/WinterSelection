@@ -5,12 +5,12 @@ require(forcats)
 LCnames <- c("Dist. to Forest Edge", 
              "Basal Area", 
              "Mean Tree Height", 
-             "Percent Softwood",
+             "Percent Conifer",
              "Wind Exposure", 
              "Agriculture", 
              "Developed", 
              "Food Subsidy", 
-             "Proportion Softwood")
+             "Proportion Conifer")
 
 ### Comparison of Magnitude of Interactions
 interactions.raw <- read.csv("Results/InteractionResults.csv") %>% 
@@ -18,11 +18,11 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
                              ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                                     ifelse(HabitatCov == "PropDev.Z", "Developed",
                                            ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
-                                                  ifelse(HabitatCov == "PropSW.Z", "Proportion Softwood",
+                                                  ifelse(HabitatCov == "PropSW.Z", "Proportion Conifer",
                                                          ifelse(HabitatCov == "Wind.Exp.Z", "Wind Exposure",
                                                                 ifelse(HabitatCov == "BA.Z", "Basal Area",
                                                                        ifelse(HabitatCov == "Ht.Z", "Mean Tree Height",
-                                                                              ifelse(HabitatCov == "SW.Z", "Percent Softwood",
+                                                                              ifelse(HabitatCov == "SW.Z", "Percent Conifer",
                                                                                      HabitatCov))))))))))%>%
   mutate(Beh_State = factor(Analysis, levels = c("Roosting", "Stationary", "Mobile"))) %>%
   mutate(LC_Cov = factor(HabitatCov, levels = LCnames)) %>%
@@ -37,7 +37,7 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
 
 #Graph showing interaction terms for snow depth
 int.Snow <- interactions.raw %>% filter(WeatherCov == "SD") %>%
-  mutate(LC_Cov = fct_reorder(LC_Cov, rev(LCnames)))
+  mutate(LC_Cov = factor(LC_Cov, rev(LCnames), ordered = T))
 int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2, size = 1.5) +
   geom_point(size = 8,
@@ -65,7 +65,7 @@ int.snow.graph <- ggplot(data = int.Snow, aes(y = LC_Cov, x = Interaction, shape
 int.Wind <- interactions.raw %>% 
   mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
   filter(WeatherCov == "WC") %>%
-  mutate(LC_Cov = fct_reorder(LC_Cov, rev(LCnames)))
+  mutate(LC_Cov = factor(LC_Cov, rev(LCnames), ordered = T))
 int.wind.graph <- ggplot(data = int.Wind, aes(y = LC_Cov, x = Interaction, shape = Beh_State, color = Beh_State)) +
   geom_vline(xintercept = 0, color = "grey60", linetype = 2, size = 1.5) +
   geom_point(size = 8,
