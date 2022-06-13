@@ -109,6 +109,64 @@ Turkey.crawl.zm1 <- crawlWrap(raw.move.df, Time.name = "Timestamp", timeStep = "
 turkeyData.zm1 <- prepData(data=Turkey.crawl.zm1)
 #View(turkeyData.zm)
 
+
+### Loop through points to get locaiton specific weather covariates
+source("./Weather Functions.R")
+options(prism.path = "E:/GitHub/WinterSelection/Data/prismtmp")
+lapply(c("sf", "raster", "prism", "rWind", "gdistance"), require, character.only = T)
+
+dates <- unique(sort(as.Date(turkeyData.zm1$Timestamp, tz = "America/New_York")))
+rm("pointsall")
+for(i in 1:length(dates)){
+  date <- dates[i]
+  
+  #Used Locations
+  points <- turkeyData.zm1 %>% filter(as.Date(Timestamp, tz = "America/New_York") == date) %>%
+    dplyr::select(ID, long = location_long, lat = location_lat, Timestamp) %>%
+    mutate(Date = as.Date(Timestamp, tz = "America/New_York")) %>%
+    filter(!is.na(long)) %>%
+    st_as_sf(., coords = c("long", "lat"), crs =  4326)
+  
+  #Snow Raster
+  download_SNODAS(date, out_dir = "C:/Users/mgonn/Downloads/Raw/")
+  unpack_SNODAS()
+  rasterize_SNODAS(data_dir = "C:/Users/mgonn/Downloads/Unpack/", 
+                   out_dir = "E:/GitHub/WinterSelection/Data/Rasters/", 
+                   format = "GTiff")
+  snow.raster <- raster(list.files("E:/GitHub/WinterSelection/Data/Rasters/", full.names = T)[i])
+  
+  #Wind Raster
+  wind.df <- wind.dl(yyyy = year(date), mm = month(date), dd = day(date), 10,
+                     lon1 = floor(min(st_coordinates(points)[,1])-1), lon2 = ceiling(max(st_coordinates(points)[,1])+1),
+                     lat1 = floor(min(st_coordinates(points)[,2])-1), lat2 = ceiling(max(st_coordinates(points)[,2])+1))
+  wind.raster <- wind2raster(wind.df)
+  
+  #Temp Raster
+  get_prism_dailys(type = "tmin", minDate = date, maxDate = date, keepZip = F)
+  prismdata.list <- ls_prism_data()
+  prismlist.pos <- which(grepl(gsub("-", x = date, ""), ls_prism_data()[,1]))
+  temp.raster <- raster(ls_prism_data(absPath=T)[prismlist.pos,2])
+  
+  #Extract Values
+  points$SnowDepth <- raster::extract(snow.raster, points)
+  points$Temp <- raster::extract(temp.raster, points)
+  points$WindDir <- raster::extract(wind.raster[[1]], points)
+  points$WindSpd <- raster::extract(wind.raster[[2]], points)
+  
+  #Cleanup Files
+  if(exists("pointsall")){
+    pointsall <- rbind(pointsall, points)
+  }else{
+    pointsall <- points
+  }
+}
+
+
+
+
+
+
+
 #Add covariate for weather (Wind Chill and Snow Depth)
 #Daily weather summaries downloaded for Bangor Airport weather station
 weather.raw <- read.csv("WeatherVariables.csv") %>%

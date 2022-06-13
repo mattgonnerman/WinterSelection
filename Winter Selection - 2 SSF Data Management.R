@@ -93,6 +93,7 @@ write.csv(full_all_hmm2, "AllUsedPoints.csv", row.names = F) #All points
 #   filter(!is.na(sensor_type_id)) %>%
 #   mutate(Time_Diff = timestamp - dateMatch)
 
+
 #############################################
 ### Generate Available Points for SSF/RSF ###
 #############################################
@@ -118,10 +119,37 @@ writeOGR(usedlocations.sp, ".", layer = "usedlocations", driver = "ESRI Shapefil
 nested.full <- fulllocations.obs.raw %>%
   nest(-ID) %>%
   mutate(track = map(data, ~ mk_track(., Long, Lat, timestamp, State, BirdID, crs= CRS("+proj=longlat +datum=WGS84"))))
-
 full.true.steps <- map(nested.full$track, steps, keep_cols = 'end')
-full.random.steps <- map(full.true.steps, random_steps, n=200, include_observed = T)
-full.steps <- bind_rows(full.random.steps, .id="ID")
+
+#Separate stationary and mobile points to create separate distributions for random points
+s.true.steps <- lapply(full.true.steps, function(x) filter(x, State == 2))
+m.true.steps <- lapply(full.true.steps, function(x) filter(x, State == 3))
+
+#Need to rewrap roosts to get new step lenght/turning anlge values
+nested.r <- fulllocations.obs.raw %>%
+  filter(State == 1) %>%
+  nest(-ID) %>%
+  mutate(track = map(data, ~ mk_track(., Long, Lat, timestamp, State, BirdID, crs= CRS("+proj=longlat +datum=WGS84"))))
+r.true.steps <- map(nested.r$track, steps, keep_cols = 'end')
+
+r.dist <- do.call("rbind", r.true.steps) 
+s.dist <- do.call("rbind", s.true.steps) 
+m.dist <- do.call("rbind", m.true.steps) 
+
+full.random.steps.r <- map(r.true.steps, random_steps, n=200, include_observed = T,
+                           sl_distr = fit_distr(r.dist$sl_, "gamma"), ta_distr = fit_distr(r.dist$ta_, "vonmises"))
+full.random.steps.s <- map(s.true.steps, random_steps, n=200, include_observed = T,
+                           sl_distr = fit_distr(s.dist$sl_, "gamma"), ta_distr = fit_distr(s.dist$ta_, "vonmises"))
+full.random.steps.m <- map(m.true.steps, random_steps, n=200, include_observed = T,
+                           sl_distr = fit_distr(m.dist$sl_, "gamma"), ta_distr = fit_distr(m.dist$ta_, "vonmises"))
+
+full.steps.r <- bind_rows(full.random.steps.r, .id="ID")
+full.steps.s <- bind_rows(full.random.steps.s, .id="ID")
+full.steps.m <- bind_rows(full.random.steps.m, .id="ID")
+
+full.steps <- rbind(full.steps.r, full.steps.m, full.steps.s) %>%
+  arrange(BirdID, t1_, desc(case_))
+
 AllPoints.ssf <- full.steps %>%
   dplyr::select(-dt_)
 coordinates(AllPoints.ssf) <- ~x2_+y2_
