@@ -61,20 +61,31 @@ Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
   mutate(Beh_State = "Mobile")
 
 interactions.raw <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
+  # filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
   mutate(CovName = ifelse(CovName == HabitatCov, "LC_Coef", 
                           ifelse(CovName == WeatherCov, "W_Coef",
                                  ifelse(CovName == "StepLength.Z", "SL_Coef",
                                         "Int_Coef"))))  %>%
+  filter(!grepl("DtFE", HabitatCov, fixed = T))
+interactions.r.dtfe <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
+  # filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
+  mutate(CovName = ifelse(CovName == HabitatCov, "LC_Coef", 
+                          ifelse(CovName == WeatherCov, "W_Coef",
+                                 ifelse(CovName == "StepLength.Z", "SL_Coef",
+                                        "Int_Coef"))))  %>%
+  filter(grepl("DtFE", HabitatCov, fixed = T)  & Beh_State == "Roosting") 
+
+interactions.raw <- rbind(interactions.raw, interactions.r.dtfe) %>%
   mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
   dplyr::select(-sd) %>%
   mutate(X0.025quant = ifelse(CovName == "LC_Coef", X0.025quant, NA)) %>%
   mutate(X0.975quant = ifelse(CovName == "LC_Coef", X0.975quant, NA)) %>%
   group_by(Beh_State, HabitatCov, WeatherCov) %>%
-  pivot_wider(names_from = CovName, values_from = c(mean, X0.025quant, X0.975quant))%>% 
+  pivot_wider(names_from = c(CovName), values_from = c(mean, X0.025quant, X0.975quant))%>% 
   ungroup() %>%
   dplyr::select(where(~!all(is.na(.x)))) %>%
   arrange(Beh_State, HabitatCov) %>% 
-  mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge",
+  mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge (Out)",
                   ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                   ifelse(HabitatCov == "PropDev.Z", "Developed",
                   ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
@@ -87,6 +98,39 @@ interactions.raw <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.
   mutate(WeatherCov = ifelse(WeatherCov == "WC", "Wind Chill", "Snow Depth")) %>%
   dplyr::select(Beh_State, Weath_Cov = WeatherCov, LC_Cov = HabitatCov, LC_Coef = mean_LC_Coef, 
          Weath_Coef = mean_W_Coef, Int_Coef = mean_Int_Coef, LCL = X0.025quant_LC_Coef, UCL = X0.975quant_LC_Coef)
+
+interactions.DtFE <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
+  filter(grepl("DtFE", HabitatCov, fixed = T) & Beh_State != "Roosting") %>%
+  # mutate(Int.Switch = ifelse(CovName == "DtFE.Z", 0, 1)) %>%
+  mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
+  dplyr::select(-sd) %>%
+  filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
+  mutate(CovName = gsub("WC", "W", CovName)) %>%
+  mutate(CovName = gsub("SD", "W", CovName)) %>%
+  group_by(Beh_State, WeatherCov) %>%
+  rename(Est = mean, LCL = X0.025quant, UCL = X0.975quant) %>%
+  pivot_wider(names_from = c(CovName), values_from = c(Est, LCL, UCL)) %>% 
+  ungroup() %>%
+  dplyr::select(where(~!all(is.na(.x)))) %>%
+  arrange(Beh_State, HabitatCov) %>% 
+  mutate(HabitatCov = "Dist. to Forest Edge (In)") %>%
+  mutate(WeatherCov = ifelse(WeatherCov == "WC", "Wind Chill", "Snow Depth")) %>%
+  rename(Int1 = "Est_DtFE.Z:W:InFor", Int2 = "Est_DtFE.Z:InFor",
+         LCL_Int1 = "LCL_DtFE.Z:W:InFor", LCL_Int2 = "LCL_DtFE.Z:InFor", 
+         UCL_Int1 = "UCL_DtFE.Z:W:InFor", UCL_Int2 = "UCL_DtFE.Z:InFor") %>%
+  mutate(Int_InFor = Est_InFor + Int1 + Int2,
+         LCL_InFor = LCL_InFor + LCL_Int1 + LCL_Int2,
+         UCL_InFor = UCL_InFor + UCL_Int1 + LCL_Int2) %>%
+  dplyr::select(Beh_State, Weath_Cov = WeatherCov, LC_Cov = HabitatCov, LC_Coef = Est_DtFE.Z, 
+                Weath_Coef = Est_W, Int_Coef = "Est_DtFE.Z:W", LCL = "LCL_DtFE.Z:W", UCL = "UCL_DtFE.Z:W",
+                Int_InFor, LCL_InFor, UCL_InFor)
+
+interactions.raw <- rbind(interactions.raw %>% mutate(Int_InFor = NA, LCL_InFor = NA, UCL_InFor = NA),
+                          interactions.DtFE)
+
+
+
+
 
 
 #Wind Exposure

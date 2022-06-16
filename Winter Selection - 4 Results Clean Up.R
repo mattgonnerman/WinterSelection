@@ -1,5 +1,7 @@
 require(dplyr)
 
+'%notin%' <- Negate('%in%')
+
 #####################
 ### ROOST RESULTS ###
 #####################
@@ -29,11 +31,12 @@ for(i in 1:length(roostlist)){
     mutate(CovName = rownames(results.matrix))
   
   info.cow.ind <- data.frame(Beh_State = "Roosting",
-                                LC_Cov = indresult[1,6],
-                                LC_Coef = indresult[1,1],
-                                Weath_Cov = indresult[1,5],
-                                Weath_Coef = indresult[2,1],
-                                Interaction = indresult[4,1])
+                             LC_Cov = indresult[1,6],
+                             LC_Coef = indresult[1,1],
+                             Weath_Cov = indresult[1,5],
+                             Weath_Coef = indresult[2,1],
+                             Interaction = indresult[3,1],
+                             DTFE = NA)
   
   ind.ms <- data.frame(Beh_State = "Roosting",
                        LC_Cov = indresult[1,6],
@@ -93,12 +96,24 @@ for(i in 1:length(loaflist)){
     mutate(HabitatCov = rownames(results.matrix)[1]) %>%
     mutate(CovName = rownames(results.matrix))
   
-  info.cow.ind <- data.frame(Beh_State = "Stationary",
-                             LC_Cov = indresult[1,6],
-                             LC_Coef = indresult[1,1],
-                             Weath_Cov = indresult[1,5],
-                             Weath_Coef = indresult[2,1],
-                             Interaction = indresult[4,1])
+  if(i %in% 3:4){
+    info.cow.ind <- data.frame(Beh_State = "Stationary",
+                               LC_Cov = indresult[1,6],
+                               LC_Coef = indresult[1,1],
+                               Weath_Cov = indresult[1,5],
+                               Weath_Coef = indresult[2,1],
+                               Interaction = c(indresult[4,1], indresult[4,1]+indresult[7,1]+indresult[5,1]),
+                               DTFE = c(0,1))
+  }else{
+    info.cow.ind <- data.frame(Beh_State = "Stationary",
+                               LC_Cov = indresult[1,6],
+                               LC_Coef = indresult[1,1],
+                               Weath_Cov = indresult[1,5],
+                               Weath_Coef = indresult[2,1],
+                               Interaction = indresult[3,1],
+                               DTFE = NA)
+    
+  }
   info.cow <- rbind(info.cow, info.cow.ind)
   
   ind.ms <- data.frame(Beh_State = "Stationary",
@@ -106,8 +121,7 @@ for(i in 1:length(loaflist)){
                        Weath_Cov = indresult[1,5],
                        WAIC = loaflist[[i]]$waic$waic,
                        DIC = loaflist[[i]]$dic$dic,
-                       MLik = loaflist[[i]]$mlik[2,1]
-  )
+                       MLik = loaflist[[i]]$mlik[2,1])
   
   if(exists("loafresults")){
     loafresults <- rbind(loafresults, indresult)
@@ -122,7 +136,7 @@ write.csv(loafresults, "Results/stationaryresults.full.csv", row.names = F)
 write.csv(loafmodelselection %>% arrange(Weath_Cov, DIC), "Results/stationarymodelselection.csv", row.names = F)
 loafinteractions <- loafresults %>%
   filter(grepl(":", CovName, fixed = T)) %>%
-  mutate(Analysis = "Stationary")
+  mutate(Analysis = "Stationary") 
 
 fullinteractions <- rbind(roostinteractions, loafinteractions)
 
@@ -160,12 +174,24 @@ for(i in 1:length(foragelist)){
     mutate(HabitatCov = rownames(results.matrix)[1]) %>%
     mutate(CovName = rownames(results.matrix))
   
-  info.cow.ind <- data.frame(Beh_State = "Mobile",
-                             LC_Cov = indresult[1,6],
-                             LC_Coef = indresult[1,1],
-                             Weath_Cov = indresult[1,5],
-                             Weath_Coef = indresult[2,1],
-                             Interaction = indresult[4,1])
+  if(i %in% 3:4){
+    info.cow.ind <- data.frame(Beh_State = "Mobile",
+                               LC_Cov = indresult[1,6],
+                               LC_Coef = indresult[1,1],
+                               Weath_Cov = indresult[1,5],
+                               Weath_Coef = indresult[2,1],
+                               Interaction = c(indresult[4,1], indresult[4,1]+indresult[7,1]+indresult[5,1]),
+                               DTFE = c(0,1))
+  }else{
+    info.cow.ind <- data.frame(Beh_State = "Mobile",
+                               LC_Cov = indresult[1,6],
+                               LC_Coef = indresult[1,1],
+                               Weath_Cov = indresult[1,5],
+                               Weath_Coef = indresult[2,1],
+                               Interaction = indresult[3,1],
+                               DTFE = NA)
+    
+  }
   info.cow <- rbind(info.cow, info.cow.ind)
   
   ind.ms <- data.frame(Beh_State = "Mobile",
@@ -191,7 +217,9 @@ forageinteractions <- forageresults %>%
   mutate(Analysis = "Mobile")
 
 
-fullinteractions <- rbind(fullinteractions, forageinteractions)
+fullinteractions <- rbind(fullinteractions, forageinteractions) %>%
+  filter(CovName %notin% c("WC:InFor", "SD:InFor"))
+
 write.csv(fullinteractions, 'Results/InteractionResults.csv', row.names = F)
 write.csv(foragemodelselection %>% arrange(Weath_Cov, DIC), "Results/mobilemodelselection.csv", row.names = F)
 write.csv(info.cow, 'Results/CowplotData.csv', row.names = F)

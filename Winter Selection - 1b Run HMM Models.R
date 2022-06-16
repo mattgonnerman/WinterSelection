@@ -135,7 +135,7 @@ stepworkBounds <- matrix(c(-Inf, 0,0,-Inf, 0,0,rep(-Inf,3),rep(Inf,9)),nrow = 3*
                          dimnames=list(colnames(stepDM),c("lower","upper")))
 
 stepBounds <- matrix(c(0,5,
-                       0,20,
+                       0,30,
                        0, Inf,
                        0, Inf,
                        0, Inf,
@@ -183,7 +183,7 @@ Par_m2.zm <- getPar0(model = turk_m1.zm,
 
 # fit model
 turk_m2.zm <- fitHMM(data = turkeyData.zm,
-                     retryFits = retryFits,
+                     # retryFits = retryFits,
                      nbStates = nbStates,
                      dist = dist,
                      Par0 = Par_m2.zm$Par,

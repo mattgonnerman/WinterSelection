@@ -10,11 +10,8 @@ m <- hmm.top.model
 ## Plot the t.p. as functions of the covariates ##
 ##################################################
 ### Bring in original data to unstandardize axes
-weather.raw <- read.csv("WeatherVariables.csv") %>%
-  mutate(Date = as.Date(DATE, format = "%m/%d/%Y"))%>%
-  mutate(AWND = ifelse(is.na(AWND), 0, AWND)) %>% #If AWND is NA, that means no wind
-  dplyr::select(Date, TMIN, AWND, WDF2, SD = SNWD)%>%
-  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) %>% #calculate windchill
+weather.raw <- read.csv("Data/WeatherVariables.csv") %>%
+  mutate(Date = as.Date(Timestamp))%>% #calculate windchill
   summarize(Mean.SD = mean(SD),
             SD.SD = sd(SD),
             Min.SD = min(SD),
@@ -236,7 +233,7 @@ SD2 <- ggplot(TP2.SD, aes(x = SD.cov)) +
                           labels = c("Stationary", "Mobile"),
                           guide = "legend") +
   xlab(element_blank()) +
-  xlim(0, 30) +
+  xlim(0, 150) +
   ylab(element_blank())
 
 ## 3 --> ? | Snow Depth
@@ -272,7 +269,7 @@ SD3 <- ggplot(TP3.SD, aes(x = SD.cov)) +
                        labels = c("Stationary", "Mobile"),
                        guide = "legend")  +
   xlab("Snow Depth") +
-  xlim(0, 30) +
+  xlim(0, 150) +
   ylab(element_blank()) + 
   guides(fill = guide_legend(override.aes = list(alpha = .2)))
 
@@ -288,7 +285,8 @@ tb.data <- read.csv("HMMBehavioralStates_output.csv") %>%
   mutate(Timestamp = as.POSIXct(Timestamp, format = "%Y-%m-%d %H:%M:%S", tz = "GMT")) %>% 
   mutate(Date = as.Date(Timestamp)) %>%
   mutate(WC.Z = (WC.Z*weather.raw$SD.WC[1]) + weather.raw$Mean.WC[1],
-         SD.Z = (SD.Z*weather.raw$SD.SD[1]) + weather.raw$Mean.SD[1])
+         SD.Z = (SD.Z*weather.raw$SD.SD[1]) + weather.raw$Mean.SD[1]) %>%
+  filter(SD.Z < ceiling(max(TP2.SD$SD.cov)))
 
 
 tb.corrected <- tb.data %>% 
@@ -388,6 +386,7 @@ tb.SD3 <- ggplot(data = tb.data, aes(x = SD.Z, y=State, group = State)) +
   scale_color_manual(values = c("#f1a806", "#46e300")) +
   theme(legend.position = "none") +
   labs(y = element_blank(), x = element_blank()) +
+  xlim(0, 150) +
   theme(axis.text.y = element_text(angle = 90, hjust = .5))
 
 

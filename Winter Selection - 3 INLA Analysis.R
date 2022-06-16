@@ -567,7 +567,7 @@ cat("\n")
 
 cat('Stationary ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')
 cat('\n')
-formula.random <- Use ~  -1 + DtFE.Z*InFor + WC + DtFE.Z*WC*InFor + #Fixed effects
+formula.random <- Use ~  -1 + DtFE.Z + WC + DtFE.Z*WC + DtFE.Z*InFor + DtFE.Z*WC*InFor + #Fixed effects
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,DtFE.Z,values=1:26,model="iid", #Random Slope
     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
@@ -604,7 +604,7 @@ cat("\n")
 
 cat('Stationary ~ Distance to Edge + SnowDepth + DtE*SD + DtE|IND')
 cat('\n')
-formula.random <- Use ~ -1 + DtFE.Z + SD + DtFE.Z*SD +
+formula.random <- Use ~ -1 + DtFE.Z + SD + DtFE.Z*SD + DtFE.Z*InFor + DtFE.Z*SD*InFor +
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
   f(ID,DtFE.Z,values=1:26,model="iid",
     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
@@ -1168,7 +1168,7 @@ sink('Results/MobileResults_HMM.csv')
 
 cat('Mobile ~ Distance to Edge + Wind Chill + DtE*WC + DtE|IND')
 cat('\n')
-formula.random <- Use ~  -1 + DtFE.Z + WC + DtFE.Z*WC + #Fixed effects
+formula.random <- Use ~  -1 + DtFE.Z + WC + DtFE.Z*WC + DtFE.Z*InFor + DtFE.Z*WC*InFor + #Fixed effects
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) + #Conditional
   f(ID,DtFE.Z,values=1:26,model="iid", #Random Slope
     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))
@@ -1205,7 +1205,7 @@ cat("\n")
 
 cat('Mobile ~ Distance to Edge + SnowDepth + DtE*SD + DtE|IND')
 cat('\n')
-formula.random <- Use ~ -1 + DtFE.Z + SD + DtFE.Z*SD +
+formula.random <- Use ~ -1 + DtFE.Z + SD + DtFE.Z*SD + DtFE.Z*InFor + DtFE.Z*SD*InFor +
   f(StratID, model = "iid", hyper = list(theta = list(initial = log(1e-6), fixed = T))) +
   f(ID,DtFE.Z,values=1:26,model="iid",
     hyper=list(theta=list(initial=log(1),fixed=F,prior="pc.prec",param=c(3,0.05))))

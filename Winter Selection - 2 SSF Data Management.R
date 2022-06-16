@@ -238,23 +238,23 @@ AllPoints.ssf$PropFoodSub <- PropAg.full.step.cov + PropDev.full.step.cov
 ### Prep Weather Covariates ###
 ###############################
 #Daily weather summaries downloaded for Bangor Airport weather station
-weather.raw <- read.csv("WeatherVariables.csv") %>%
-  mutate(DATE = as.Date(DATE, format = "%m/%d/%Y")) %>%
-  mutate(AWND = ifelse(is.na(AWND), 0, AWND)) %>% #If AWND is NA, that means no wind
-  dplyr::select(Date = DATE, TMIN, AWND, WDF2, SD = SNWD) %>%
-  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) %>% #calculate windchill
-  mutate(WC_prev = lag(WC, 1)) #want column with previous days wind chill
-
-
-
+weather.raw <- read.csv("./Data/WeatherVariables.csv") %>%
+  mutate(WC_prev = lag(WC, 1)) %>% #want column with previous days wind chill
+  mutate(WC_prev = ifelse(is.na(WC_prev), lead(WC_prev), WC_prev),
+         BirdID = stringr::str_extract(ID, "(?<=X).*?(?=\\_)"),
+         Hour = lubridate::hour(Timestamp),
+         Date = as.Date(Timestamp)) %>%
+  select(BirdID, Date, Hour, SD, WC, WC_prev, WDF2 = WindDir)
 
 ###########################
 ### Final Data Clean Up ###
 ###########################
 AllPoints.ssf.df <- AllPoints.ssf@data %>%
-  mutate(Date = as.Date(t2_)) %>%
-  mutate(Use = as.numeric(case_)) %>%
-  mutate(ID = as.factor(ID))
+  mutate(Date = as.Date(t1_),
+         Use = as.numeric(case_),
+         ID = as.factor(ID),
+         Hour = lubridate::hour(t1_))
+
 
 AllPoints.ssf.ogpoints <- cbind(AllPoints.ssf.df, AllPoints.ssf@coords) #in case you want the actual location points
 AllPoints.ssf.ogpoints$ConditionalID <- paste(AllPoints.ssf.ogpoints$ID, AllPoints.ssf.ogpoints$step_id_, sep="_")
@@ -262,7 +262,7 @@ AllPoints.ssf.ogpoints$ConditionalID <- paste(AllPoints.ssf.ogpoints$ID, AllPoin
 
 ##Merge Weather
 #Add windchill and snow depth by date
-AllPoints.ssf.weather <- merge(AllPoints.ssf.ogpoints, weather.raw, by = "Date", all.x = T)
+AllPoints.ssf.weather <- merge(AllPoints.ssf.ogpoints, weather.raw, by = c("BirdID", "Date", "Hour"), all.x = T)
 
 
 ##Aspect

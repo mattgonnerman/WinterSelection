@@ -108,7 +108,8 @@ Turkey.crawl.zm1 <- crawlWrap(raw.move.df, Time.name = "Timestamp", timeStep = "
 # create momentuHMMData object from crwData object
 turkeyData.zm1 <- prepData(data=Turkey.crawl.zm1)
 #View(turkeyData.zm)
-
+save(turkeyData.zm1, file = "./Data/turkeycrawl.RData")
+load("./Data/turkeycrawl.RData")
 
 ### Loop through points to get locaiton specific weather covariates
 source("./Weather Functions.R")
@@ -122,17 +123,19 @@ for(i in 1:length(dates)){
   
   #Used Locations
   points <- turkeyData.zm1 %>% filter(as.Date(Timestamp, tz = "America/New_York") == date) %>%
-    dplyr::select(ID, long = location_long, lat = location_lat, Timestamp) %>%
+    dplyr::select(ID, long = x, lat = y, Timestamp) %>%
     mutate(Date = as.Date(Timestamp, tz = "America/New_York")) %>%
     filter(!is.na(long)) %>%
-    st_as_sf(., coords = c("long", "lat"), crs =  4326)
+    st_as_sf(., coords = c("long", "lat"), crs =32619)  %>%
+    st_transform(4326)
   
   #Snow Raster
-  download_SNODAS(date, out_dir = "C:/Users/mgonn/Downloads/Raw/")
-  unpack_SNODAS()
-  rasterize_SNODAS(data_dir = "C:/Users/mgonn/Downloads/Unpack/", 
-                   out_dir = "E:/GitHub/WinterSelection/Data/Rasters/", 
-                   format = "GTiff")
+  # #Only need commented code if first time running 
+  # download_SNODAS(date, out_dir = "C:/Users/mgonn/Downloads/Raw/")
+  # unpack_SNODAS()
+  # rasterize_SNODAS(data_dir = "C:/Users/mgonn/Downloads/Unpack/", 
+  #                  out_dir = "E:/GitHub/WinterSelection/Data/Rasters/", 
+  #                  format = "GTiff")
   snow.raster <- raster(list.files("E:/GitHub/WinterSelection/Data/Rasters/", full.names = T)[i])
   
   #Wind Raster
@@ -142,14 +145,15 @@ for(i in 1:length(dates)){
   wind.raster <- wind2raster(wind.df)
   
   #Temp Raster
-  get_prism_dailys(type = "tmin", minDate = date, maxDate = date, keepZip = F)
+  # #Only need commented code if first time running 
+  # get_prism_dailys(type = "tmin", minDate = date, maxDate = date, keepZip = F)
   prismdata.list <- ls_prism_data()
   prismlist.pos <- which(grepl(gsub("-", x = date, ""), ls_prism_data()[,1]))
   temp.raster <- raster(ls_prism_data(absPath=T)[prismlist.pos,2])
   
   #Extract Values
   points$SnowDepth <- raster::extract(snow.raster, points)
-  points$Temp <- raster::extract(temp.raster, points)
+  points$Temp <- raster::extract(temp.raster, points %>% st_transform(crs(temp.raster)))
   points$WindDir <- raster::extract(wind.raster[[1]], points)
   points$WindSpd <- raster::extract(wind.raster[[2]], points)
   
@@ -161,25 +165,23 @@ for(i in 1:length(dates)){
   }
 }
 
+st_write(pointsall, dsn = "./Data", layer = "WeatherIndSpec", driver = "ESRI Shapefile", delete_layer = T)
 
+weather.covs <- as.data.frame(pointsall %>%
+                                st_drop_geometry()) %>%
+  select(ID, Timestamp, SD = SnowDepth, TMIN = Temp, WindDir, WindSpd) %>%
+  mutate(AWND = WindSpd*3.6) %>%
+  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) %>% #calculate windchill
+  select(ID, Timestamp, SD, WC, WindDir)
+write.csv(weather.covs, file = "./Data/WeatherVariables.csv")
 
-
-
-
-
-#Add covariate for weather (Wind Chill and Snow Depth)
-#Daily weather summaries downloaded for Bangor Airport weather station
-weather.raw <- read.csv("WeatherVariables.csv") %>%
-  mutate(Date = as.Date(DATE, format = "%m/%d/%Y"))%>%
-  mutate(AWND = ifelse(is.na(AWND), 0, AWND)) %>% #If AWND is NA, that means no wind
-  dplyr::select(Date, TMIN, AWND, WDF2, SD = SNWD)%>%
-  mutate(WC = 13.12 + (.6215*TMIN)-(11.37*(AWND^0.16))+(.3965*TMIN*(AWND^0.16))) #calculate windchill
-turkeyData.zm1$Date <- as.Date(turkeyData.zm1$Timestamp)
 #Add windchill and snow depth by date
-turkeyData.weather <- merge(turkeyData.zm1, weather.raw, by = "Date", all.x = T) %>%
+turkeyData.weather <- merge(turkeyData.zm1, weather.covs, by = c("ID", "Timestamp"), all.x = T) %>%
   mutate(WC.Z =  as.numeric(scale(WC, center = T, scale = T))) %>%
   mutate(SD.Z =  as.numeric(scale(SD, center = T, scale = T))) %>%
-  dplyr::select(Timestamp, ID, SD.Z, WC.Z) 
+  dplyr::select(Timestamp, ID, SD.Z, WC.Z) %>%
+  mutate(SD.Z = ifelse(is.na(SD.Z), 0, SD.Z),
+         WC.Z = ifelse(is.na(WC.Z), 0, WC.Z))
 Turkey.crawl.zm <- crawlMerge(Turkey.crawl.zm1, turkeyData.weather, Time.name = "Timestamp")
 
 # create momentuHMMData object from crwData object
