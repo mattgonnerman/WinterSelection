@@ -27,7 +27,8 @@ interactions.raw <- read.csv("Results/InteractionResults.csv") %>%
   mutate(Beh_State = factor(Analysis, levels = c("Roosting", "Stationary", "Mobile"))) %>%
   mutate(LC_Cov = factor(HabitatCov, levels = LCnames)) %>%
   arrange(Beh_State, LC_Cov, WeatherCov) %>%
-  rename(Interaction = mean, SD = sd)
+  rename(Interaction = mean, SD = sd) %>%
+  filter(HabitatCov != "Dist. to Forest Edge")
 # interactions.raw$Beh_State <- factor(interactions.raw$Beh_State,
 #                                      levels = c("Roost", "Loafing", "Foraging"))
 # interactions.raw$LC_Cov <- factor(interactions.raw$LC_Cov,

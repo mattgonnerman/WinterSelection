@@ -202,7 +202,7 @@ WC3 <- ggplot(TP3.WC, aes(x = WC.cov)) +
                           breaks = c("solid", "twodash"),
                           labels = c("Stationary", "Mobile"),
                           guide = "legend") +
-  xlab("Wind Chill") +
+  xlab(expression("Wind Chill " ( degree*C))) +
   ylab(paste("P(Mobile ", sprintf("\u2192"), " X)"))
 
 ## 2 --> ? | Snow Depth
@@ -268,7 +268,7 @@ SD3 <- ggplot(TP3.SD, aes(x = SD.cov)) +
                        breaks = c("#f1a806", "#46e300"),
                        labels = c("Stationary", "Mobile"),
                        guide = "legend")  +
-  xlab("Snow Depth") +
+  xlab("Snow Depth (cm)") +
   xlim(0, 150) +
   ylab(element_blank()) + 
   guides(fill = guide_legend(override.aes = list(alpha = .2)))

@@ -18,9 +18,11 @@ Roost.final <- Roost.raw %>%
             SD.AG = sd(PropAg),
             Mean.DEV = mean(PropDev),
             SD.DEV = sd(PropDev),
+            Mean.HT = mean(Ht, na.rm = T),
+            SD.HT = sd(Ht, na.rm = T)
   )
 Loafing.raw <- read.csv("Stationaryfinal_HMM.csv")
-Loafing.final <- Roost.raw %>%
+Loafing.final <- Loafing.raw %>%
   summarize(Mean.DtFE = mean(DtFE),
             SD.DtFE = sd(DtFE),
             Mean.BA = mean(BA),
@@ -33,6 +35,8 @@ Loafing.final <- Roost.raw %>%
             SD.AG = sd(PropAg),
             Mean.DEV = mean(PropDev),
             SD.DEV = sd(PropDev),
+            Mean.HT = mean(Ht, na.rm = T),
+            SD.HT = sd(Ht, na.rm = T)
   )
 Foraging.raw <- read.csv("Stationaryfinal_HMM.csv")
 Foraging.final <- Foraging.raw %>%
@@ -48,6 +52,8 @@ Foraging.final <- Foraging.raw %>%
             SD.AG = sd(PropAg),
             Mean.DEV = mean(PropDev),
             SD.DEV = sd(PropDev),
+            Mean.HT = mean(Ht),
+            SD.HT = sd(Ht)
   )
 
 
@@ -61,21 +67,12 @@ Mobile.SSF.results <- read.csv("Results/mobileresults.full.csv") %>%
   mutate(Beh_State = "Mobile")
 
 interactions.raw <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
+  filter(HabitatCov != "DtFE.Z") %>%
   # filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
   mutate(CovName = ifelse(CovName == HabitatCov, "LC_Coef", 
                           ifelse(CovName == WeatherCov, "W_Coef",
                                  ifelse(CovName == "StepLength.Z", "SL_Coef",
                                         "Int_Coef"))))  %>%
-  filter(!grepl("DtFE", HabitatCov, fixed = T))
-interactions.r.dtfe <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
-  # filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
-  mutate(CovName = ifelse(CovName == HabitatCov, "LC_Coef", 
-                          ifelse(CovName == WeatherCov, "W_Coef",
-                                 ifelse(CovName == "StepLength.Z", "SL_Coef",
-                                        "Int_Coef"))))  %>%
-  filter(grepl("DtFE", HabitatCov, fixed = T)  & Beh_State == "Roosting") 
-
-interactions.raw <- rbind(interactions.raw, interactions.r.dtfe) %>%
   mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
   dplyr::select(-sd) %>%
   mutate(X0.025quant = ifelse(CovName == "LC_Coef", X0.025quant, NA)) %>%
@@ -83,9 +80,9 @@ interactions.raw <- rbind(interactions.raw, interactions.r.dtfe) %>%
   group_by(Beh_State, HabitatCov, WeatherCov) %>%
   pivot_wider(names_from = c(CovName), values_from = c(mean, X0.025quant, X0.975quant))%>% 
   ungroup() %>%
-  dplyr::select(where(~!all(is.na(.x)))) %>%
+  # dplyr::select(where(~!all(is.na(.x)))) %>%
   arrange(Beh_State, HabitatCov) %>% 
-  mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge (Out)",
+  mutate(HabitatCov = ifelse(HabitatCov == "DtFE.Z", "Dist. to Forest Edge",
                   ifelse(HabitatCov == "PropAg.Z", "Agriculture",
                   ifelse(HabitatCov == "PropDev.Z", "Developed",
                   ifelse(HabitatCov == "PropFoodSub.Z", "Food Subsidy",
@@ -98,40 +95,6 @@ interactions.raw <- rbind(interactions.raw, interactions.r.dtfe) %>%
   mutate(WeatherCov = ifelse(WeatherCov == "WC", "Wind Chill", "Snow Depth")) %>%
   dplyr::select(Beh_State, Weath_Cov = WeatherCov, LC_Cov = HabitatCov, LC_Coef = mean_LC_Coef, 
          Weath_Coef = mean_W_Coef, Int_Coef = mean_Int_Coef, LCL = X0.025quant_LC_Coef, UCL = X0.975quant_LC_Coef)
-
-interactions.DtFE <- rbind(Roost.SSF.results, Stationary.SSF.results, Mobile.SSF.results) %>%
-  filter(grepl("DtFE", HabitatCov, fixed = T) & Beh_State != "Roosting") %>%
-  # mutate(Int.Switch = ifelse(CovName == "DtFE.Z", 0, 1)) %>%
-  mutate(WeatherCov = ifelse(WeatherCov == "WC_prev", "WC", WeatherCov)) %>%
-  dplyr::select(-sd) %>%
-  filter(CovName %notin% c("WC:InFor", "SD:InFor")) %>%
-  mutate(CovName = gsub("WC", "W", CovName)) %>%
-  mutate(CovName = gsub("SD", "W", CovName)) %>%
-  group_by(Beh_State, WeatherCov) %>%
-  rename(Est = mean, LCL = X0.025quant, UCL = X0.975quant) %>%
-  pivot_wider(names_from = c(CovName), values_from = c(Est, LCL, UCL)) %>% 
-  ungroup() %>%
-  dplyr::select(where(~!all(is.na(.x)))) %>%
-  arrange(Beh_State, HabitatCov) %>% 
-  mutate(HabitatCov = "Dist. to Forest Edge (In)") %>%
-  mutate(WeatherCov = ifelse(WeatherCov == "WC", "Wind Chill", "Snow Depth")) %>%
-  rename(Int1 = "Est_DtFE.Z:W:InFor", Int2 = "Est_DtFE.Z:InFor",
-         LCL_Int1 = "LCL_DtFE.Z:W:InFor", LCL_Int2 = "LCL_DtFE.Z:InFor", 
-         UCL_Int1 = "UCL_DtFE.Z:W:InFor", UCL_Int2 = "UCL_DtFE.Z:InFor") %>%
-  mutate(Int_InFor = Est_InFor + Int1 + Int2,
-         LCL_InFor = LCL_InFor + LCL_Int1 + LCL_Int2,
-         UCL_InFor = UCL_InFor + UCL_Int1 + LCL_Int2) %>%
-  dplyr::select(Beh_State, Weath_Cov = WeatherCov, LC_Cov = HabitatCov, LC_Coef = Est_DtFE.Z, 
-                Weath_Coef = Est_W, Int_Coef = "Est_DtFE.Z:W", LCL = "LCL_DtFE.Z:W", UCL = "UCL_DtFE.Z:W",
-                Int_InFor, LCL_InFor, UCL_InFor)
-
-interactions.raw <- rbind(interactions.raw %>% mutate(Int_InFor = NA, LCL_InFor = NA, UCL_InFor = NA),
-                          interactions.DtFE)
-
-
-
-
-
 
 #Wind Exposure
 WE.SD.raw <- interactions.raw %>%
@@ -164,10 +127,7 @@ WE.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
                                  seq(min(Loafing.raw$Wind.Exp.Z), max(Loafing.raw$Wind.Exp.Z),length.out = 21),
                                  seq(min(Foraging.raw$Wind.Exp.Z), max(Foraging.raw$Wind.Exp.Z),length.out = 21)),
                       W.Val = 4) %>%
-  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) %>%
-  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.WE[1]) + Roost.final$Mean.WE[1],
-                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.WE[1]) + Loafing.final$Mean.WE[1],
-                                (LC.Val*Foraging.final$SD.WE[1]) + Foraging.final$Mean.WE[1])))
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) 
 
 WE.SD.input <- WE.SD.df %>%
   # mutate(Check1 = (LC.Coef*LC.Val)) %>%
@@ -176,7 +136,10 @@ WE.SD.input <- WE.SD.df %>%
   # mutate(Check4 = (LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)) %>%
   mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
   mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.WE[1]) + Roost.final$Mean.WE[1],
+                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.WE[1]) + Loafing.final$Mean.WE[1],
+                                (LC.Val*Foraging.final$SD.WE[1]) + Foraging.final$Mean.WE[1])))
 
 WE.SD.graph <- ggplot(data = WE.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
   geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .2) +
@@ -195,6 +158,8 @@ WE.SD.graph <- ggplot(data = WE.SD.input, aes(x = LC.Val, y = Est, group = Behav
                         # labels = c("Roosting", "Stationary", "Mobile"),
                         values = c("longdash", "solid", "twodash")) +
   scale_y_continuous(trans = "log10")
+
+
 
 #Basal Area
 BA.SD.raw <- interactions.raw %>%
@@ -227,10 +192,7 @@ BA.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
                                   seq(min(Loafing.raw$BA.Z), max(Loafing.raw$BA.Z),length.out = 21),
                                   seq(min(Foraging.raw$BA.Z), max(Foraging.raw$BA.Z),length.out = 21)),
                        W.Val = 4) %>%
-  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) %>%
-  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.BA[1]) + Roost.final$Mean.BA[1],
-                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.BA[1]) + Loafing.final$Mean.BA[1],
-                                (LC.Val*Foraging.final$SD.BA[1]) + Foraging.final$Mean.BA[1])))
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) 
 
 
 BA.SD.input <- BA.SD.df %>%
@@ -240,7 +202,10 @@ BA.SD.input <- BA.SD.df %>%
   # mutate(Check4 = (LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)) %>%
   mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
   mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.BA[1]) + Roost.final$Mean.BA[1],
+                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.BA[1]) + Loafing.final$Mean.BA[1],
+                                (LC.Val*Foraging.final$SD.BA[1]) + Foraging.final$Mean.BA[1])))
 BA.SD.graph <- ggplot(data = BA.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
   geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
   geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
@@ -257,64 +222,6 @@ BA.SD.graph <- ggplot(data = BA.SD.input, aes(x = LC.Val, y = Est, group = Behav
   scale_linetype_manual(name = "Behavioral\nState",
                         # labels = c("Roosting", "Stationary", "Mobile"),
                         values = c("longdash", "solid", "twodash"))
-
-#Distance to Forest Edge
-DtFE.SD.raw <- interactions.raw %>%
-  filter(Weath_Cov == "Snow Depth") %>% 
-  filter(LC_Cov == "Dist. to Forest Edge") %>%
-  mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
-  arrange(Beh_State)
-
-
-DtFE.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
-                                    rep("Stationary", 21),
-                                    rep("Mobile", 21)),
-                       LC = DtFE.SD.raw$LC_Cov[1],
-                       LC.Coef = c(rep(DtFE.SD.raw$LC_Coef[1], 21),
-                                   rep(DtFE.SD.raw$LC_Coef[2], 21),
-                                   rep(DtFE.SD.raw$LC_Coef[3], 21)),
-                       LC.LCL = c(rep(DtFE.SD.raw$LCL[1], 21),
-                                  rep(DtFE.SD.raw$LCL[2], 21),
-                                  rep(DtFE.SD.raw$LCL[3], 21)),
-                       LC.UCL = c(rep(DtFE.SD.raw$UCL[1], 21),
-                                  rep(DtFE.SD.raw$UCL[2], 21),
-                                  rep(DtFE.SD.raw$UCL[3], 21)),
-                       W.Coef = c(rep(DtFE.SD.raw$Weath_Coef[1], 21),
-                                  rep(DtFE.SD.raw$Weath_Coef[2], 21),
-                                  rep(DtFE.SD.raw$Weath_Coef[3], 21)),
-                       Int.Coef = c(rep(DtFE.SD.raw$Int_Coef[1], 21),
-                                    rep(DtFE.SD.raw$Int_Coef[2], 21),
-                                    rep(DtFE.SD.raw$Int_Coef[3], 21)),
-                       LC.Val = c(seq(min(Roost.raw$DtFE.Z), max(Roost.raw$DtFE.Z),length.out = 21),
-                                  seq(min(Loafing.raw$DtFE.Z), max(Loafing.raw$DtFE.Z),length.out = 21),
-                                  seq(min(Foraging.raw$DtFE.Z), max(Foraging.raw$DtFE.Z),length.out = 21)),
-                       W.Val = 4) %>%
-  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) %>%
-  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.DtFE[1]) + Roost.final$Mean.DtFE[1],
-                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.DtFE[1]) + Loafing.final$Mean.DtFE[1],
-                                (LC.Val*Foraging.final$SD.DtFE[1]) + Foraging.final$Mean.DtFE[1])))
-
-DtFE.SD.input <- DtFE.SD.df %>%
-  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
-  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
-DtFE.SD.graph <- ggplot(data = DtFE.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
-  geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
-  geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
-  geom_line(aes(color = Behavior, linetype = Behavior), size = 4) +
-  theme_classic(base_size = 55) +
-  xlab(DtFE.SD.df$LC[1]) + ylab("") +
-  theme(legend.key.width=unit(.6,"inch")) +
-  scale_color_manual(name = "Behavioral\nState",
-                     # labels = c("Roosting", "Stationary", "Mobile"),
-                     values = c("#1cade4", "#f1a806", "#46e300")) +
-  scale_fill_manual(name = "Behavioral\nState",
-                    # labels = c("Roosting", "Stationary", "Mobile"),
-                    values = c("#1cade4", "#f1a806", "#46e300")) +
-  scale_linetype_manual(name = "Behavioral\nState",
-                        # labels = c("Roosting", "Stationary", "Mobile"),
-                        values = c("longdash", "solid", "twodash")) +
-  scale_y_continuous(trans = "log10")
 
 #Percent Softwood
 PropSW.SD.raw <- interactions.raw %>%
@@ -346,15 +253,15 @@ PropSW.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
                          LC.Val = c(seq(min(Roost.raw$SW.Z), max(Roost.raw$SW.Z),length.out = 21),
                                     seq(min(Loafing.raw$SW.Z), max(Loafing.raw$SW.Z),length.out = 21),
                                     seq(min(Foraging.raw$SW.Z), max(Foraging.raw$SW.Z),length.out = 21)),
-                         W.Val = 4) %>%
+                         W.Val = 4)
+PropSW.SD.input <- PropSW.SD.df %>%
+  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
+  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
   mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile"))) %>%
   mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.SW[1]) + Roost.final$Mean.SW[1],
                          ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.SW[1]) + Loafing.final$Mean.SW[1],
                                 (LC.Val*Foraging.final$SD.SW[1]) + Foraging.final$Mean.SW[1])))
-PropSW.SD.input <- PropSW.SD.df %>%
-  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
-  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
 PropSW.SD.graph <- ggplot(data = PropSW.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
   geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
   geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
@@ -397,15 +304,15 @@ FS.SD.df <- data.frame(Behavior = c(rep("Stationary", 21),
                        LC.Val = c(seq(min(Loafing.raw$PropAg.Z), max(Loafing.raw$PropAg.Z),length.out = 21),
                                   seq(min(Foraging.raw$PropAg.Z), max(Foraging.raw$PropAg.Z),length.out = 21)),
                          W.Val = 4) %>%
-  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile")))  %>%
-  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.AG[1]) + Roost.final$Mean.AG[1],
-                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.AG[1]) + Loafing.final$Mean.AG[1],
-                                (LC.Val*Foraging.final$SD.AG[1]) + Foraging.final$Mean.AG[1])))
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile")))  
 
 FS.SD.input <- FS.SD.df %>%
   mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
   mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.AG[1]) + Roost.final$Mean.AG[1],
+                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.AG[1]) + Loafing.final$Mean.AG[1],
+                                (LC.Val*Foraging.final$SD.AG[1]) + Foraging.final$Mean.AG[1])))
 FS.SD.graph <- ggplot(data = FS.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
   geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
   geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
@@ -430,7 +337,7 @@ FS.SD.raw <- interactions.raw %>%
   mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
   arrange(Beh_State)
 
-#Developds
+#Developed
 DEV.SD.raw <- interactions.raw %>%
   filter(Weath_Cov == "Snow Depth") %>% 
   filter(LC_Cov == "Developed") %>%
@@ -454,14 +361,14 @@ DEV.SD.df <- data.frame(Behavior = c(rep("Stationary", 21),
                        LC.Val = c(seq(min(Loafing.raw$PropDev.Z), max(Loafing.raw$PropDev.Z),length.out = 21),
                                   seq(min(Foraging.raw$PropDev.Z), max(Foraging.raw$PropDev.Z),length.out = 21)),
                        W.Val = 4) %>%
-  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile")))   %>%
-  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.DEV[1]) + Roost.final$Mean.DEV[1],
-                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.DEV[1]) + Loafing.final$Mean.DEV[1],
-                                (LC.Val*Foraging.final$SD.DEV[1]) + Foraging.final$Mean.DEV[1])))
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile")))   
 DEV.SD.input <- DEV.SD.df %>%
   mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
   mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
-  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.DEV[1]) + Roost.final$Mean.DEV[1],
+                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.DEV[1]) + Loafing.final$Mean.DEV[1],
+                                (LC.Val*Foraging.final$SD.DEV[1]) + Foraging.final$Mean.DEV[1])))
 DEV.SD.graph <- ggplot(data = DEV.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
   geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
   geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
@@ -480,22 +387,67 @@ DEV.SD.graph <- ggplot(data = DEV.SD.input, aes(x = LC.Val, y = Est, group = Beh
                         values = c("solid", "twodash"))
 
 
-DEV.SD.raw <- interactions.raw %>%
+#Mean Tree Height
+MTH.SD.raw <- interactions.raw %>%
   filter(Weath_Cov == "Snow Depth") %>% 
-  filter(LC_Cov == "Agriculture") %>%
+  filter(LC_Cov == "Mean Tree Height") %>%
   mutate(Beh_State = factor(Beh_State, levels = c("Roosting","Stationary","Mobile"))) %>%
   arrange(Beh_State)
+
+
+MTH.SD.df <- data.frame(Behavior = c(rep("Roosting", 21),
+                                     rep("Stationary", 21)),
+                        LC = MTH.SD.raw$LC_Cov[1],
+                        LC.Coef = c(rep(MTH.SD.raw$LC_Coef[1], 21),
+                                    rep(MTH.SD.raw$LC_Coef[2], 21)),
+                        LC.LCL = c(rep(MTH.SD.raw$LCL[1], 21),
+                                   rep(MTH.SD.raw$LCL[2], 21)),
+                        LC.UCL = c(rep(MTH.SD.raw$UCL[1], 21),
+                                   rep(MTH.SD.raw$UCL[2], 21)),
+                        W.Coef = c(rep(MTH.SD.raw$Weath_Coef[1], 21),
+                                   rep(MTH.SD.raw$Weath_Coef[2], 21)),
+                        Int.Coef = c(rep(MTH.SD.raw$Int_Coef[1], 21),
+                                     rep(MTH.SD.raw$Int_Coef[2], 21)),
+                        LC.Val = c(seq(min(Roost.raw$Ht.Z, na.rm = T), max(Roost.raw$Ht.Z, na.rm = T),length.out = 21),
+                                   seq(min(Loafing.raw$Ht.Z, na.rm = T), max(Loafing.raw$Ht.Z, na.rm = T),length.out = 21)),
+                        W.Val = 0) %>%
+  mutate(Behavior = factor(Behavior, levels = c("Roosting","Stationary","Mobile")))   
+MTH.SD.input <- MTH.SD.df %>%
+  mutate(Est = exp((LC.Coef*LC.Val) + (Int.Coef*LC.Val*W.Val))) %>%
+  mutate(Est.LCL = exp((LC.LCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(Est.UCL = exp((LC.UCL*LC.Val) + (Int.Coef*LC.Val*W.Val)))%>%
+  mutate(LC.Val = ifelse(Behavior == "Roosting", (LC.Val*Roost.final$SD.HT[1]) + Roost.final$Mean.HT[1],
+                         ifelse(Behavior == "Stationary", (LC.Val*Loafing.final$SD.HT[1]) + Loafing.final$Mean.HT[1],
+                                (LC.Val*Foraging.final$SD.HT[1]) + Foraging.final$Mean.HT[1])))
+MTH.SD.graph <- ggplot(data = MTH.SD.input, aes(x = LC.Val, y = Est, group = Behavior)) +
+  geom_ribbon(aes(ymin = Est.LCL, ymax = Est.UCL, fill = Behavior), alpha = .4) +
+  geom_hline(yintercept = 1, color = "black", linetype = 2, size = 1.5) +
+  geom_line(aes(color = Behavior, linetype = Behavior), size = 4) +
+  theme_classic(base_size = 55) +
+  xlab(MTH.SD.df$LC[1]) + ylab("") +
+  theme(legend.key.width=unit(.6,"inch")) +
+  scale_color_manual(name = "Behavioral\nState",
+                     # labels = c("Roosting", "Stationary", "Mobile"),
+                     values = c("#1cade4", "#f1a806")) +
+  scale_fill_manual(name = "Behavioral\nState",
+                    # labels = c("Roosting", "Stationary", "Mobile"),
+                    values = c("#1cade4", "#f1a806")) +
+  scale_linetype_manual(name = "Behavioral\nState",
+                        # labels = c("Roosting", "Stationary", "Mobile"),
+                        values = c("solid", "twodash")) +
+  coord_cartesian(ylim = c(0,10))
+
 
 require(cowplot)
 legend <- get_legend(WE.SD.graph + theme(legend.title = element_blank() ,legend.position = "bottom", legend.key.width=unit(3,"inch")))
 WE.SD.graph <- WE.SD.graph + theme(legend.position = "none")
 BA.SD.graph <- BA.SD.graph + theme(legend.position = "none")
-DtFE.SD.graph <- DtFE.SD.graph + theme(legend.position = "none")
+MTH.SD.graph <- MTH.SD.graph + theme(legend.position = "none")
 PropSW.SD.graph <- PropSW.SD.graph + theme(legend.position = "none")
 FS.SD.graph <- FS.SD.graph + theme(legend.position = "none")
 DEV.SD.graph <- DEV.SD.graph + theme(legend.position = "none")
 
-LC_grid <- plot_grid(plotlist = list(DtFE.SD.graph, BA.SD.graph,
+LC_grid <- plot_grid(plotlist = list(MTH.SD.graph, BA.SD.graph,
                           PropSW.SD.graph, WE.SD.graph,
                           FS.SD.graph, DEV.SD.graph),
           nrow = 3,
